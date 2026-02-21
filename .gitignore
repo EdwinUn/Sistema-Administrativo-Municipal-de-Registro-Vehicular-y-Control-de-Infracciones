@@ -1,2 +1,34 @@
+# =========================
+# 1. Caché de Python
+# =========================
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# =========================
+# 2. Entornos Virtuales
+# =========================
+# Si usas un entorno virtual (muy recomendado), Git no debe rastrear todos esos megabytes de librerías.
+venv/
+env/
+.venv/
+
+# =========================
+# 3. Archivos de Base de Datos
+# =========================
+# ¡MUY IMPORTANTE! No subas tu base de datos local. 
+# Si la subes, cada vez que agregues un vehículo de prueba, Git detectará un cambio en el archivo binario y tu historial se hará gigante y pesado.
+database/infracciones.db
+*.db
+*.sqlite3
+
+# =========================
+# 4. Configuraciones de tu Editor (VS Code)
+# =========================
+.vscode/
+
+# =========================
+# 5. Archivos del Sistema Operativo
+# =========================
+Thumbs.db
+.DS_Store
