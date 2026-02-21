@@ -1,0 +1,24 @@
+class Vehiculo:
+    """
+    Representa una unidad motorizada registrada dentro del municipio.
+    """
+    def __init__(self, vin, placa, marca, modelo, anio, color, clase_vehiculo, procedencia, id_propietario, estado_legal="Activo"):
+        
+        # Atributos estructurales / inmutables
+        self.vin = vin  # Identificador único e inmutable
+        self.marca = marca
+        self.modelo = modelo
+        self.anio = anio
+        self.clase_vehiculo = clase_vehiculo
+        self.procedencia = procedencia
+        
+        # Atributos modificables
+        self.placa = placa  # Única, pero modificable bajo procesos administrativos
+        self.color = color
+        self.estado_legal = estado_legal
+        
+        # Llave foránea que lo conecta con el dueño
+        self.id_propietario = id_propietario
+
+    def __repr__(self):
+        return f"<Vehículo: {self.marca} {self.modelo} ({self.anio}) - Placa: {self.placa} - VIN: {self.vin}>"
