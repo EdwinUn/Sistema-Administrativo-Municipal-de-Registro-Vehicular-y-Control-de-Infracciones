@@ -10,8 +10,6 @@ def obtener_conexion():
     """Crea y retorna una conexión absoluta a la base de datos."""
     # Verificamos si la ruta es correcta en consola para estar seguros
     # print(f"Conectando a: {DB_PATH}")
-    print({DB_PATH})
-    
     conexion = sqlite3.connect(DB_PATH)
     conexion.row_factory = sqlite3.Row 
     conexion.execute("PRAGMA foreign_keys = 1")
