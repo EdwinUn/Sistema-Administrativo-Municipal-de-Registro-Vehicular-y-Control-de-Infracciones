@@ -1,62 +1,135 @@
 import re
 from datetime import datetime
+import logic.catalogos as cat
 
 class Validador:
     """
-    Centraliza todas las validaciones de formato y reglas de negocio.
-    Retorna True si es válido, o (False, "Mensaje de error") si falla.
+    Clase centralizada para validaciones de formato, longitud y catálogos.
+    No interactúa con la base de datos.
+    Retorna siempre una tupla: (es_valido: bool, mensaje_error: str)
     """
 
+    # =========================
+    # VALIDACIONES DE VEHÍCULOS
+    # =========================
+    
     @staticmethod
-    def validar_vin(vin):
-        # Debe tener longitud válida (17 caracteres) 
-        if not vin or len(str(vin).strip()) != 17:
+    def validar_vin(vin: str) -> tuple[bool, str]:
+        if len(vin) != 17:
             return False, "El VIN debe tener exactamente 17 caracteres."
         return True, ""
 
     @staticmethod
-    def validar_curp(curp):
-        # Debe cumplir con formato oficial (18 caracteres alfanuméricos) [cite: 337]
-        patron = r'^[A-Z0-9]{18}$'
-        if not re.match(patron, str(curp).strip().upper()):
-            return False, "La CURP debe tener 18 caracteres alfanuméricos."
+    def validar_placa(placa: str) -> tuple[bool, str]:
+        if not placa or placa.strip() == "":
+            return False, "La placa no puede quedar vacía."
+        # Aquí puedes agregar un Regex específico si el municipio tiene un formato exacto[cite: 333].
         return True, ""
 
     @staticmethod
-    def validar_anio_vehiculo(anio):
-        # Debe ser numérico, no mayor al año actual, y no menor a 1900 [cite: 357, 358, 359]
-        try:
-            anio_int = int(anio)
-            anio_actual = datetime.now().year
-            if anio_int < 1900 or anio_int > anio_actual:
-                return False, f"El año debe estar entre 1900 y {anio_actual}."
-            return True, ""
-        except ValueError:
-            return False, "El año debe ser un valor numérico."
-
-    @staticmethod
-    def validar_correo(correo):
-        # Debe cumplir formato estándar [cite: 349]
-        patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-        if not re.match(patron, str(correo).strip()):
-            return False, "El formato del correo electrónico no es válido."
+    def validar_anio_vehiculo(anio: int) -> tuple[bool, str]:
+        anio_actual = datetime.now().year
+        if not isinstance(anio, int):
+            return False, "El año del vehículo debe ser un valor numérico."
+        if anio < 1900 or anio > anio_actual:
+            return False, f"El año debe estar en el rango de 1900 a {anio_actual}."
         return True, ""
 
     @staticmethod
-    def validar_telefono(telefono):
-        # Debe contener únicamente dígitos [cite: 351]
-        # Asumimos longitud estándar nacional de 10 dígitos [cite: 352]
-        if not str(telefono).isdigit() or len(str(telefono).strip()) != 10:
-            return False, "El teléfono debe contener exactamente 10 dígitos numéricos."
+    def validar_clase_vehiculo(clase: str) -> tuple[bool, str]:
+        if clase not in cat.CLASES_VEHICULO:
+            return False, "La clase de vehículo seleccionada no es válida."
         return True, ""
 
     @staticmethod
-    def validar_monto(monto):
-        # Debe ser numérico y mayor a cero.
-        try:
-            monto_float = float(monto)
-            if monto_float <= 0:
-                return False, "El monto de la infracción debe ser mayor a cero."
-            return True, ""
-        except ValueError:
-            return False, "El monto debe ser un valor numérico."
+    def validar_procedencia_vehiculo(clase: str) -> tuple[bool, str]:
+        if clase not in cat.PROCEDENCIAS_VEHICULO:
+            return False, "La procedencia de vehículo seleccionada no es válida."
+        return True, ""
+    
+    @staticmethod
+    def validar_estado_vehiculo(estado: str) -> tuple[bool, str]:
+        if estado not in cat.ESTADOS_VEHICULO:
+            return False, "El estado legal del vehículo seleccionado no es válido."
+        return True, ""
+
+    @staticmethod
+    def validar_marca_modelo(marca: str, modelo: str) -> tuple[bool, str]:
+        """
+        Valida que la marca exista en el catálogo y que el modelo corresponda a dicha marca.
+        """
+        if marca not in cat.MARCAS_MODELOS_VEHICULO:
+            return False, "La marca seleccionada no es válida o no está registrada en el sistema."
+        
+        # Si la marca es válida, verificamos que el modelo pertenezca a su lista
+        modelos_permitidos = cat.MARCAS_MODELOS_VEHICULO[marca]
+        if modelo not in modelos_permitidos:
+            return False, f"El modelo '{modelo}' no es válido para la marca '{marca}'."
+            
+        return True, ""
+    
+    @staticmethod
+    def validar_color_vehiculo(color: str) -> tuple[bool, str]:
+        """
+        Valida que el color se encuentre dentro del catálogo cerrado.
+        """
+        if color not in cat.COLORES_VEHICULO:
+            return False, "El color ingresado no es válido. Seleccione uno de la lista."
+        return True, ""
+    
+    @staticmethod
+    def validar_id_propietario(id_propietario: int) -> tuple[bool, str]:
+        """
+        Valida únicamente el formato numérico del ID interno.
+        La existencia real del propietario en la base de datos se verifica en el Gestor.
+        """
+        if not isinstance(id_propietario, int) or isinstance(id_propietario, bool):
+            return False, "El ID del propietario debe ser un valor numérico entero."
+        if id_propietario <= 0:
+            return False, "El ID del propietario debe ser mayor a cero."
+            
+        return True, ""
+    
+    # =========================
+    # VALIDACIONES DE PROPIETARIOS
+    # =========================
+
+    @staticmethod
+    def validar_curp(curp: str) -> tuple[bool, str]:
+        patron_curp = r'^[A-Z0-9]{18}$' 
+        if not re.match(patron_curp, curp):
+            return False, "La CURP debe contener exactamente 18 caracteres alfanuméricos."
+        return True, ""
+
+    @staticmethod
+    def validar_correo(correo: str) -> tuple[bool, str]:
+        patron_correo = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+        if not re.match(patron_correo, correo):
+            return False, "El correo electrónico no cumple con el formato estándar."
+        return True, ""
+
+    @staticmethod
+    def validar_telefono(telefono: str) -> tuple[bool, str]:
+        if not telefono.isdigit():
+            return False, "El teléfono debe contener únicamente dígitos."
+        if len(telefono) != 10:  # Asumiendo estándar nacional de 10 dígitos [cite: 352]
+            return False, "El teléfono debe tener una longitud válida (10 dígitos)."
+        return True, ""
+
+    # =========================
+    # VALIDACIONES DE INFRACCIONES
+    # =========================
+
+    @staticmethod
+    def validar_monto(monto: float) -> tuple[bool, str]:
+        if not isinstance(monto, (int, float)):
+            return False, "El monto de la infracción debe ser numérico."
+        if monto <= 0:
+            return False, "El monto de la infracción debe ser mayor a cero."
+        return True, ""
+
+    @staticmethod
+    def validar_tipo_infraccion(tipo: str) -> tuple[bool, str]:
+        if tipo not in cat.TIPOS_INFRACCION:
+            return False, "El tipo de infracción seleccionado no es válido."
+        return True, ""

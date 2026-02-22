@@ -8,11 +8,26 @@ class GestorVehiculos:
     def registrar_vehiculo(vehiculo):
         """Recibe un objeto Vehiculo, verifica sus reglas de negocio y lo guarda."""
         
-        # 1. Validaciones estructurales y de formato
+        # 1. Validaciones estructurales, de formato y de catálogos
+        # Estas validaciones evitan viajes innecesarios a la base de datos.
+        
         valido, msj = Validador.validar_vin(vehiculo.vin)
         if not valido: return False, msj
         
+        valido, msj = Validador.validar_placa(vehiculo.placa)
+        if not valido: return False, msj
+
         valido, msj = Validador.validar_anio_vehiculo(vehiculo.anio)
+        if not valido: return False, msj
+
+        valido, msj = Validador.validar_clase_vehiculo(vehiculo.clase)
+        if not valido: return False, msj
+
+        valido, msj = Validador.validar_estado_vehiculo(vehiculo.estado_legal)
+        if not valido: return False, msj
+        
+        # Asumiendo que agregaste un validador para procedencia en validador.py
+        valido, msj = Validador.validar_procedencia_vehiculo(vehiculo.procedencia)
         if not valido: return False, msj
 
         # 2. Guardar en la base de datos
@@ -20,7 +35,7 @@ class GestorVehiculos:
         cursor = conexion.cursor()
         
         try:
-            # Primero verificamos manualmente que el propietario exista (Regla de negocio)
+            # Regla de negocio: Verificar que el propietario asociado exista
             cursor.execute("SELECT id_propietario FROM propietarios WHERE id_propietario = ?", (vehiculo.id_propietario,))
             if not cursor.fetchone():
                 return False, "Error: El ID del propietario no existe en el sistema."
@@ -29,20 +44,79 @@ class GestorVehiculos:
                 INSERT INTO vehiculos (vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (vehiculo.vin, vehiculo.placa, vehiculo.marca, vehiculo.modelo, vehiculo.anio, 
-                  vehiculo.color, vehiculo.clase_vehiculo, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario))
+                  vehiculo.color, vehiculo.clase, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario))
             
             conexion.commit()
             return True, "Vehículo registrado correctamente."
             
         except sqlite3.IntegrityError as e:
             error_str = str(e).lower()
+            # Interceptamos las restricciones UNIQUE de la base de datos
             if 'vin' in error_str:
                 return False, "Error: El VIN ingresado ya está registrado. Es único e inmutable."
             elif 'placa' in error_str:
-                return False, "Error: La placa ingresada ya está asignada a otro vehículo."
+                return False, "Error: La placa ingresada ya está asignada a otro vehículo activo."
             else:
                 return False, "Error de integridad en la base de datos."
         except Exception as e:
             return False, f"Error inesperado al registrar vehículo: {str(e)}"
+        finally:
+            conexion.close()
+
+    @staticmethod
+    def modificar_vehiculo(vin, nueva_placa, nuevo_color, nuevo_estado_legal):
+        """
+        Modifica los datos permitidos de un vehículo (Placa, Color, Estado legal).
+        Bloquea el trámite si hay infracciones pendientes.
+        No permite modificar atributos inmutables como VIN, Marca, Modelo, Año, Clase ni Procedencia[cite: 229, 230, 231, 232, 233, 234, 235].
+        """
+        # 1. Validaciones de formato y catálogos
+        valido, msj = Validador.validar_placa(nueva_placa)
+        if not valido: return False, msj
+
+        valido, msj = Validador.validar_estado_vehiculo(nuevo_estado_legal)
+        if not valido: return False, msj
+
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            # 2. Regla de negocio: Bloquear trámite administrativo si hay infracciones pendientes [cite: 180, 236]
+            cursor.execute('''
+                SELECT COUNT(*) FROM infracciones 
+                WHERE vin = ? AND estado = 'Pendiente'
+            ''', (vin,))
+            
+            if cursor.fetchone()[0] > 0:
+                return False, "Error: El vehículo tiene infracciones pendientes. Trámite bloqueado."
+
+            # 3. Regla de negocio: Garantizar que la nueva placa sea única [cite: 178]
+            # Revisamos que no exista OTRO vehículo (diferente VIN) activo con esa misma placa [cite: 175]
+            cursor.execute('''
+                SELECT vin FROM vehiculos 
+                WHERE placa = ? AND vin != ? AND estado_legal = 'Activo'
+            ''', (nueva_placa, vin))
+            
+            if cursor.fetchone():
+                return False, "Error: La nueva placa ya está asignada a otro vehículo activo."
+
+            # 4. Ejecutar la actualización solo en los campos permitidos
+            cursor.execute('''
+                UPDATE vehiculos 
+                SET placa = ?, color = ?, estado_legal = ?
+                WHERE vin = ?
+            ''', (nueva_placa, nuevo_color, nuevo_estado_legal, vin))
+
+            if cursor.rowcount == 0:
+                return False, "Error: No se encontró el vehículo con el VIN especificado."
+
+            conexion.commit()
+            return True, "Datos del vehículo actualizados correctamente."
+
+        except sqlite3.IntegrityError:
+            # Respaldo por si la base de datos lanza error de unicidad (UNIQUE constraint)
+            return False, "Error de integridad: La placa ingresada ya existe en el sistema."
+        except Exception as e:
+            return False, f"Error inesperado al modificar vehículo: {str(e)}"
         finally:
             conexion.close()
