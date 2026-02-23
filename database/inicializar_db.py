@@ -56,7 +56,7 @@ def crear_tablas():
     # 4. Tabla Infracciones (Multas)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS infracciones (
-            folio INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio TEXT PRIMARY KEY,
             vin_infractor TEXT NOT NULL,
             id_agente INTEGER NOT NULL,
             fecha TEXT NOT NULL,
