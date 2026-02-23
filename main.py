@@ -1,23 +1,28 @@
-from models.propietario import Propietario
-from models.vehiculo import Vehiculo
-from logic.gestor_propietarios import GestorPropietarios
-from logic.gestor_vehiculos import GestorVehiculos
+import sys
+from PySide6.QtWidgets import QApplication
 
-def probar_sistema():
-    print("--- INICIANDO PRUEBA MAESTRA ---")
+# Importamos la ventana de login que acabamos de crear
+from views.login import VentanaLogin
 
-    # Datos de prueba
-    prop = Propietario("Armando Muñoz", "MURA050101HYCMXRA1", "Mérida", "9991234567", "a@mail.com", "Vigente")
-    
-    # 1. Intentar registrar Propietario
-    exito_p, msj_p = GestorPropietarios.registrar_propietario(prop)
-    print(f"Registro Propietario: {'✅' if exito_p else '❌'} | Mensaje: {msj_p}")
+# Opcional: Importar la inicialización de la base de datos 
+# por si quieres asegurarte de que las tablas existan al arrancar
+# from database.inicializar_db import crear_tablas
 
-    if exito_p:
-        # 2. Intentar registrar Vehículo (solo si el dueño se creó)
-        auto = Vehiculo("1HGCM82633A004352", "YUC100A", "Honda", "Civic", 2018, "Negro", "Sedán", "Nacional", 1)
-        exito_v, msj_v = GestorVehiculos.registrar_vehiculo(auto)
-        print(f"Registro Vehículo:    {'✅' if exito_v else '❌'} | Mensaje: {msj_v}")
+def main():
+    # 1. (Opcional) Inicializar base de datos
+    # crear_tablas()
+
+    # 2. Crear la instancia de la aplicación PySide6
+    # sys.argv permite pasar argumentos de línea de comandos si fuera necesario
+    app = QApplication(sys.argv)
+
+    # 3. Instanciar la ventana de Login y mostrarla
+    ventana_login = VentanaLogin()
+    ventana_login.show()
+
+    # 4. Ejecutar el bucle principal de la aplicación (Event Loop)
+    # sys.exit asegura que Python cierre limpiamente cuando se cierre la app
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
-    probar_sistema()
+    main()
