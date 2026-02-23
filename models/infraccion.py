@@ -3,8 +3,8 @@ class Infraccion:
     Registro administrativo generado por una falta cometida por un vehículo.
     """
     def __init__(self, vin_infractor, id_agente, fecha, hora, lugar, 
-                 tipo_infraccion, motivo, monto, licencia_conductor=None, 
-                 estado="Pendiente", folio=None):
+                tipo_infraccion, motivo, monto, licencia_conductor=None, 
+                estado="Pendiente", folio=None):
         
         self.folio = folio # Identificador único generado automáticamente 
         self.vin_infractor = vin_infractor # Llave foránea hacia el vehículo 
