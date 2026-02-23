@@ -30,6 +30,16 @@ class GestorVehiculos:
         valido, msj = Validador.validar_procedencia_vehiculo(vehiculo.procedencia)
         if not valido: return False, msj
 
+        valido, msj = Validador.validar_marca_modelo(vehiculo.marca, vehiculo.modelo)
+        if not valido: return False, msj
+
+        valido, msj = Validador.validar_color_vehiculo(vehiculo.color)
+        if not valido: return False, msj
+
+        valido, msj = Validador.validar_id_propietario(vehiculo.id_propietario)
+        if not valido: return False, msj
+        
+        
         # 2. Guardar en la base de datos
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -44,7 +54,7 @@ class GestorVehiculos:
                 INSERT INTO vehiculos (vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (vehiculo.vin, vehiculo.placa, vehiculo.marca, vehiculo.modelo, vehiculo.anio, 
-                  vehiculo.color, vehiculo.clase, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario))
+                vehiculo.color, vehiculo.clase, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario))
             
             conexion.commit()
             return True, "Vehículo registrado correctamente."
@@ -84,7 +94,7 @@ class GestorVehiculos:
             # 2. Regla de negocio: Bloquear trámite administrativo si hay infracciones pendientes [cite: 180, 236]
             cursor.execute('''
                 SELECT COUNT(*) FROM infracciones 
-                WHERE vin = ? AND estado = 'Pendiente'
+                WHERE vin_infractor = ? AND estado = 'Pendiente'
             ''', (vin,))
             
             if cursor.fetchone()[0] > 0:
