@@ -20,9 +20,6 @@ class GestorVehiculos:
         valido, msj = Validador.validar_anio_vehiculo(vehiculo.anio)
         if not valido: return False, msj
 
-        valido, msj = Validador.validar_clase_vehiculo(vehiculo.clase)
-        if not valido: return False, msj
-
         valido, msj = Validador.validar_estado_vehiculo(vehiculo.estado_legal)
         if not valido: return False, msj
         
@@ -30,7 +27,7 @@ class GestorVehiculos:
         valido, msj = Validador.validar_procedencia_vehiculo(vehiculo.procedencia)
         if not valido: return False, msj
 
-        valido, msj = Validador.validar_marca_modelo(vehiculo.marca, vehiculo.modelo)
+        valido, msj = Validador.validar_marca_modelo_clase(vehiculo.marca, vehiculo.modelo, vehiculo.clase)
         if not valido: return False, msj
 
         valido, msj = Validador.validar_color_vehiculo(vehiculo.color)

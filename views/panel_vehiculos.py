@@ -2,7 +2,11 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 QLineEdit, QPushButton, QComboBox, QTabWidget, 
 QFormLayout, QMessageBox, QSpinBox)
 from PySide6.QtCore import Qt
+
+#Conexiones con el backend (logic)
 import logic.catalogos as cat
+from models.vehiculo import Vehiculo
+from logic.gestor_vehiculos import GestorVehiculos
 
 class PanelVehiculos(QWidget):
     def __init__(self):
@@ -109,6 +113,11 @@ class PanelVehiculos(QWidget):
         self.btn_guardar.setStyleSheet("background-color: #27ae60; color: white; font-weight: bold; padding: 10px;")
         layout.addWidget(self.btn_guardar, alignment=Qt.AlignRight)
 
+        # Conexion con el backend
+        self.btn_guardar.clicked.connect(self.procesar_registro)
+        layout.addWidget(self.btn_guardar, alignment=Qt.AlignRight)
+        
+        
     # ==========================================
     # MÉTODOS AUXILIARES PARA LA INTERFAZ
     # ==========================================
@@ -139,6 +148,80 @@ class PanelVehiculos(QWidget):
                 self.combo_clase.setEnabled(False) # Se pone gris y no se puede cambiar
             else:
                 self.combo_clase.setEnabled(True)  # Se habilita para que el operador elija
+    
+    def procesar_registro(self):
+        """Extraemos los datos de la interfaz, los empaqueta y los enviamos al backend."""
+        
+        # 1. Extraer datos (Usamos .strip() para quitar espacios accidentales)
+        # Convertimos VIN y Placa a mayúsculas automáticamente como medida defensiva
+        vin = self.input_vin.text().strip().upper()
+        placa = self.input_placa.text().strip().upper()
+        marca = self.combo_marca.currentText()
+        modelo = self.combo_modelo.currentText()
+        anio = self.input_anio.value()
+        color = self.combo_color.currentText()
+        clase = self.combo_clase.currentText()
+        estado = self.combo_estado.currentText()
+        procedencia = self.combo_procedencia.currentText()
+        
+        id_propietario_str = self.input_id_propietario.text().strip()
+
+        # Validación visual rápida: Que no intenten guardar con campos vacíos críticos
+        if not vin or not placa or not id_propietario_str:
+            QMessageBox.warning(self, "Campos Incompletos", "Por favor, llene el VIN, Placa y el ID del Propietario.")
+            return
+
+        # Convertir el ID a entero (Si el usuario escribió letras, lo atrapamos aquí)
+        try:
+            id_propietario = int(id_propietario_str)
+        except ValueError:
+            QMessageBox.warning(self, "Error de Formato", "El ID del propietario debe ser un número entero válido.")
+            return
+
+        # 2. Empaquetar en el Modelo
+        nuevo_vehiculo = Vehiculo(
+            vin=vin, 
+            placa=placa, 
+            marca=marca, 
+            modelo=modelo, 
+            anio=anio, 
+            color=color, 
+            clase=clase, 
+            estado_legal=estado, 
+            procedencia=procedencia, 
+            id_propietario=id_propietario
+        )
+
+        # 3. Enviar al Backend
+        # Aquí cruzamos los dedos. El Gestor validará todo e insertará en SQLite
+        exito, mensaje = GestorVehiculos.registrar_vehiculo(nuevo_vehiculo)
+
+        # 4. Dar Retroalimentación al Operador
+        if exito:
+            QMessageBox.information(self, "Registro Exitoso", mensaje)
+            self.limpiar_formulario() # Limpiamos la pantalla para el siguiente auto
+        else:
+            # Si falló (ej. VIN repetido, modelo inválido), mostramos el mensaje exacto de tu validador
+            QMessageBox.critical(self, "Error al Guardar", mensaje)
+
+    def limpiar_formulario(self):
+        """Limpia las cajas de texto después de un guardado exitoso."""
+        self.input_vin.clear()
+        self.input_placa.clear()
+        self.input_id_propietario.clear()
+        self.input_anio.setValue(2024) # Regresamos al valor por defecto
+        self.combo_marca.setCurrentIndex(0) # Regresamos a la primera marca
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     # ==========================================
     # PESTAÑA 2: MODIFICAR VEHÍCULO
