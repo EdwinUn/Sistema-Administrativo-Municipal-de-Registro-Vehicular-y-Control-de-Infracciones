@@ -32,3 +32,6 @@ database/infracciones.db
 # =========================
 Thumbs.db
 .DS_Store
+
+# archivo temporal para inicio de sesion
+crear_admin.py
