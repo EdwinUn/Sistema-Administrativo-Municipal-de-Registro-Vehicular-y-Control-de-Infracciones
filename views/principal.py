@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
-                               QPushButton, QStackedWidget, QLabel, QFrame)
+QPushButton, QStackedWidget, QLabel, QFrame)
 from PySide6.QtCore import Qt
 
 # Importamos los paneles que ya tienes en tu estructura de views
