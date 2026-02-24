@@ -55,17 +55,26 @@ class Validador:
         return True, ""
 
     @staticmethod
-    def validar_marca_modelo(marca: str, modelo: str) -> tuple[bool, str]:
+    def validar_marca_modelo_clase(marca: str, modelo: str, clase: str) -> tuple[bool, str]:
         """
-        Valida que la marca exista en el catálogo y que el modelo corresponda a dicha marca.
+        Valida la cascada completa: 
+        1. Que la marca exista.
+        2. Que el modelo pertenezca a la marca.
+        3. Que la clase esté permitida para ese modelo específico.
         """
+        # 1. Validar Marca
         if marca not in cat.MARCAS_MODELOS_VEHICULO:
-            return False, "La marca seleccionada no es válida o no está registrada en el sistema."
+            return False, f"La marca '{marca}' no está registrada en el sistema."
         
-        # Si la marca es válida, verificamos que el modelo pertenezca a su lista
-        modelos_permitidos = cat.MARCAS_MODELOS_VEHICULO[marca]
-        if modelo not in modelos_permitidos:
+        # 2. Validar Modelo
+        modelos_de_la_marca = cat.MARCAS_MODELOS_VEHICULO[marca]
+        if modelo not in modelos_de_la_marca:
             return False, f"El modelo '{modelo}' no es válido para la marca '{marca}'."
+            
+        # 3. Validar Clase (La nueva capa de seguridad)
+        clases_permitidas_del_modelo = modelos_de_la_marca[modelo]
+        if clase not in clases_permitidas_del_modelo:
+            return False, f"Un '{modelo}' no puede ser clasificado como '{clase}'. Opciones válidas: {', '.join(clases_permitidas_del_modelo)}."
             
         return True, ""
 
