@@ -1,27 +1,41 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-# Importamos la ventana de login que acabamos de crear
-from views.login import VentanaLogin
+# 1. Importamos la ventana principal directamente
+from views.principal import VentanaPrincipal
+# from views.login import VentanaLogin # <-- Lo silenciamos temporalmente
 
-# Opcional: Importar la inicialización de la base de datos 
-# por si quieres asegurarte de que las tablas existan al arrancar
-# from database.inicializar_db import crear_tablas
-
+# ==========================================
+# TRUCO DE DESARROLLO (MOCK USER)
+# ==========================================
+class UsuarioPrueba:
+    """Un gafete falso para entrar directo al sistema sin loguearse."""
+    def __init__(self):
+        self.id_usuario = 1
+        self.nombre_usuario = "Admin de Pruebas"
+        self.rol = "Administrador" # <- Si quieren cambiar el rol solo cambian esta string por otro rol disponible
+    """
+    Estos son los roles disponibles:
+    ROLES_USUARIO = [
+    "Administrador",
+    "Operador Administrativo",
+    "Agente de Tránsito",
+    "Supervisor"
+]
+    """
 def main():
-    # 1. (Opcional) Inicializar base de datos
-    # crear_tablas()
-
-    # 2. Crear la instancia de la aplicación PySide6
-    # sys.argv permite pasar argumentos de línea de comandos si fuera necesario
     app = QApplication(sys.argv)
 
-    # 3. Instanciar la ventana de Login y mostrarla
-    ventana_login = VentanaLogin()
-    ventana_login.show()
+    # --- MODO PRODUCCIÓN (Silenciado por ahora) ---
+    # ventana_login = VentanaLogin()
+    # ventana_login.show()
 
-    # 4. Ejecutar el bucle principal de la aplicación (Event Loop)
-    # sys.exit asegura que Python cierre limpiamente cuando se cierre la app
+    # --- MODO DESARROLLO RÁPIDO ---
+    # Creamos nuestro gafete VIP y abrimos la app directamente
+    gafete_vip = UsuarioPrueba()
+    ventana_principal = VentanaPrincipal(gafete_vip)
+    ventana_principal.show()
+
     sys.exit(app.exec())
 
 if __name__ == "__main__":
