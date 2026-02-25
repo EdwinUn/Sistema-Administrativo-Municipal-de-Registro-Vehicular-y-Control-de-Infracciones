@@ -212,20 +212,11 @@ class PanelVehiculos(QWidget):
         self.input_anio.setValue(2024) # Regresamos al valor por defecto
         self.combo_marca.setCurrentIndex(0) # Regresamos a la primera marca
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     # ==========================================
     # PESTAÑA 2: MODIFICAR VEHÍCULO
     # ==========================================
+
     def construir_tab_modificar(self):
         layout = QVBoxLayout(self.tab_modificar)
         
@@ -245,11 +236,12 @@ class PanelVehiculos(QWidget):
         formulario = QFormLayout()
         
         self.mod_placa = QLineEdit()
+        self.mod_placa.setPlaceholderText("Ej: YYU-021-A")
         self.mod_color = QComboBox()
         self.mod_color.addItems(cat.COLORES_VEHICULO)
         
         self.mod_estado = QComboBox()
-        self.mod_estado.addItems(["Activo", "Inactivo", "Robado"]) # Debería venir de catálogos
+        self.mod_estado.addItems(cat.ESTADOS_VEHICULO) # Debería venir de catálogos
 
         formulario.addRow("Nueva Placa:", self.mod_placa)
         formulario.addRow("Nuevo Color:", self.mod_color)
