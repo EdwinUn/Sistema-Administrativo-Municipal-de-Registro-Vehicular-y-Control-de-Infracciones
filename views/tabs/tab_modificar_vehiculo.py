@@ -1,65 +1,32 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-QLineEdit, QPushButton, QComboBox, QTabWidget, 
-QFormLayout, QMessageBox, QSpinBox, QDialog)
+QLineEdit, QPushButton, QComboBox, QFormLayout, QMessageBox, QDialog)
 from PySide6.QtCore import Qt
 
-#Conexiones con el backend (logic)
+# Importaciones del backend
 import logic.catalogos as cat
-from models.vehiculo import Vehiculo
 from logic.gestor_vehiculos import GestorVehiculos
 
-class PanelVehiculos(QWidget):
+# [REFACTORIZACIÓN]: Nombramos la clase específicamente para su función.
+# Hereda de QWidget, lo que la convierte en una pestaña autosuficiente.
+class TabModificarVehiculo(QWidget):
     def __init__(self):
         super().__init__()
         self.configurar_ui()
 
     def configurar_ui(self):
-        # Layout principal del panel
-        layout_principal = QVBoxLayout(self)
+        # [REFACTORIZACIÓN]: El layout base se aplica a 'self' (esta pestaña), 
+        # eliminando la referencia a 'self.tab_modificar' que existía en el panel general.
+        layout = QVBoxLayout(self)
         
-        # Título del módulo
-        lbl_titulo = QLabel("Módulo de Gestión de Vehículos")
-        lbl_titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
-        lbl_titulo.setAlignment(Qt.AlignCenter)
-        layout_principal.addWidget(lbl_titulo)
-
         # ==========================================
-        # CREACIÓN DE PESTAÑAS (QTabWidget)
+        # 1. ZONA DE BÚSQUEDA
         # ==========================================
-        self.pestanas = QTabWidget()
-        
-        self.tab_registrar = QWidget()
-        self.tab_modificar = QWidget()
-
-
-        self.pestanas.addTab(self.tab_registrar, "Registrar Nuevo Vehículo")
-        self.pestanas.addTab(self.tab_modificar, "Modificar Vehículo")
-
-
-        layout_principal.addWidget(self.pestanas)
-
-        # Construir el contenido de cada pestaña
-        self.construir_tab_registrar()
-        self.construir_tab_modificar()
-
-
-    # ==========================================
-    # PESTAÑA 2: MODIFICAR VEHÍCULO
-    # ==========================================
-
-    def construir_tab_modificar(self):
-        layout = QVBoxLayout(self.tab_modificar)
-        
-        # Zona de búsqueda
         layout_busqueda = QHBoxLayout()
         self.input_buscar_vin = QLineEdit()
-
-        #--BOTON BUSCAR Y CONEXION BACKEND---
         self.input_buscar_vin.setPlaceholderText("Ingrese el VIN a buscar...")
         
         btn_buscar = QPushButton("Buscar")
         btn_buscar.clicked.connect(self.procesar_busqueda_vehiculo)
-
 
         layout_busqueda.addWidget(QLabel("VIN del Vehículo:"))
         layout_busqueda.addWidget(self.input_buscar_vin)
@@ -68,14 +35,14 @@ class PanelVehiculos(QWidget):
         layout.addLayout(layout_busqueda)
 
         # ==========================================
-        # Formulario de modificación mixto (Lectura y Escritura)
+        # 2. FORMULARIO DE MODIFICACIÓN (Lectura y Escritura)
         # ==========================================
         formulario = QFormLayout()
         
-        # --- CAMPOS DE SOLO LECTURA  ---
+        # --- CAMPOS DE SOLO LECTURA ---
         self.mod_marca = QLineEdit()
         self.mod_marca.setReadOnly(True)
-        self.mod_marca.setStyleSheet("background-color: #e0e0e0; color: #555;") # Se pinta gris para indicar que está bloqueado
+        self.mod_marca.setStyleSheet("background-color: #e0e0e0; color: #555;") 
         
         self.mod_modelo = QLineEdit()
         self.mod_modelo.setReadOnly(True)
@@ -89,73 +56,69 @@ class PanelVehiculos(QWidget):
         self.mod_clase.setReadOnly(True)
         self.mod_clase.setStyleSheet("background-color: #e0e0e0; color: #555;")
 
-        # --- CAMPOS DE PROPIETARIO (Lectura y boton de tramite  ---
+        # --- CAMPO PROPIETARIO (Lectura + Botón) ---
         self.mod_id_propietario = QLineEdit()
         self.mod_id_propietario.setReadOnly(True)
         self.mod_id_propietario.setStyleSheet("background-color: #e0e0e0; color: #555;")
+        
         self.btn_cambiar_propietario = QPushButton("Cambio de Propietario")
         self.btn_cambiar_propietario.setStyleSheet("background-color: #9b59b6; color: white; font-weight: bold;")
-
         self.btn_cambiar_propietario.clicked.connect(self.abrir_ventana_cambio_propietario)
 
-            # Agrupamos la cajita y el botón
         layout_propietario = QHBoxLayout()
         layout_propietario.addWidget(self.mod_id_propietario)
         layout_propietario.addWidget(self.btn_cambiar_propietario)
 
-            #---- CAMPOS DE PLACAS-----
+        # --- CAMPO PLACAS (Lectura + Botón) ---
         self.mod_placa = QLineEdit()
         self.mod_placa.setReadOnly(True)
         self.mod_placa.setStyleSheet("background-color: #e0e0e0; color: #555;")
         
-        self.btn_cambiar_placa = QPushButton("Realizaar Reemplacamiento")
+        self.btn_cambiar_placa = QPushButton("Realizar Reemplacamiento")
         self.btn_cambiar_placa.setStyleSheet("background-color: #3498db; color: white; font-weight: bold;")
-
-        #Creacion de boton e ingreso de funcion para abrir pestana emergente
         self.btn_cambiar_placa.clicked.connect(self.abrir_ventana_reemplacamiento)
 
-        #layout horizontal pequeño para juntar la cajita y el botón
         layout_placa = QHBoxLayout()
         layout_placa.addWidget(self.mod_placa)
         layout_placa.addWidget(self.btn_cambiar_placa)
 
-        #agregamos el layout completo
-        
-            #----COLOR-----
+        # --- CAMPOS EDITABLES ---
         self.mod_color = QComboBox()
         self.mod_color.addItems(cat.COLORES_VEHICULO)
-            #----ESTADO-----
+        
         self.mod_estado = QComboBox()
         self.mod_estado.addItems(cat.ESTADOS_VEHICULO) 
 
         # --- ENSAMBLAJE DEL FORMULARIO ---
-        # Primero mostramos lo que no se toca
         formulario.addRow("Marca:", self.mod_marca)
         formulario.addRow("Modelo:", self.mod_modelo)
         formulario.addRow("Clase:", self.mod_clase)
         formulario.addRow("Año:", self.mod_anio)
         formulario.addRow("ID Propietario:", layout_propietario)
         
-        # Luego lo que sí pueden cambiare
         formulario.addRow("Placa Actual:", layout_placa)
         formulario.addRow("Nuevo Color:", self.mod_color)
         formulario.addRow("Estado Legal:", self.mod_estado)
         
         layout.addLayout(formulario)
 
-        # Botón de actualización
+        # ==========================================
+        # 3. BOTÓN DE ACTUALIZACIÓN
+        # ==========================================
         self.btn_actualizar = QPushButton("Actualizar Datos")
         self.btn_actualizar.setStyleSheet("background-color: #f39c12; color: white; font-weight: bold; padding: 10px;")
         
-        layout.addStretch() # Empuja el botón hacia abajo
+        layout.addStretch() 
         layout.addWidget(self.btn_actualizar, alignment=Qt.AlignRight)
 
-
+    # ==========================================
+    # MÉTODOS DE VENTANAS EMERGENTES (Trámites)
+    # ==========================================
     def abrir_ventana_reemplacamiento(self):
         """Abre una ventana modal (pop-up) para el trámite de cambio de placas."""
         dialogo = QDialog(self)
         dialogo.setWindowTitle("Trámite de Reemplacamiento")
-        dialogo.setFixedSize(450, 200) # Una ventanita de buen tamaño
+        dialogo.setFixedSize(450, 200) 
         
         layout = QVBoxLayout(dialogo)
         
@@ -168,7 +131,7 @@ class PanelVehiculos(QWidget):
         sub_mensaje.setStyleSheet("font-size: 14px; color: #7f8c8d;")
         
         btn_cerrar = QPushButton("Entendido")
-        btn_cerrar.clicked.connect(dialogo.accept) # Cierra la ventanita
+        btn_cerrar.clicked.connect(dialogo.accept) 
         
         layout.addStretch()
         layout.addWidget(mensaje)
@@ -176,7 +139,6 @@ class PanelVehiculos(QWidget):
         layout.addStretch()
         layout.addWidget(btn_cerrar, alignment=Qt.AlignCenter)
         
-        # .exec() hace que la ventana sea "modal" (no puedes tocar lo de atrás hasta cerrarla)
         dialogo.exec()
     
     def abrir_ventana_cambio_propietario(self):
@@ -191,7 +153,6 @@ class PanelVehiculos(QWidget):
         mensaje.setAlignment(Qt.AlignCenter)
         mensaje.setStyleSheet("font-size: 18px; color: #8e44ad; font-weight: bold;")
         
-        # Texto realista sobre lo que hará el backend en el futuro
         sub_mensaje = QLabel("Próximamente:\nHistorial de compra-venta, validación de no adeudos\ny transferencia de responsabilidades legales.")
         sub_mensaje.setAlignment(Qt.AlignCenter)
         sub_mensaje.setStyleSheet("font-size: 14px; color: #7f8c8d;")
@@ -207,6 +168,9 @@ class PanelVehiculos(QWidget):
         
         dialogo.exec()
 
+    # ==========================================
+    # MÉTODOS LÓGICOS (Búsqueda)
+    # ==========================================
     def procesar_busqueda_vehiculo(self):
         """Busca el vehículo en la BD y rellena el formulario de modificación."""
         vin_buscado = self.input_buscar_vin.text().strip().upper()
@@ -215,12 +179,9 @@ class PanelVehiculos(QWidget):
             QMessageBox.warning(self, "Atención", "Por favor, ingrese un VIN para buscar.")
             return
             
-        # Llamamos al backend (Asegúrate de tener importado GestorVehiculos arriba)
         exito, resultado = GestorVehiculos.buscar_vehiculo_por_vin(vin_buscado)
         
         if exito:
-            # resultado es el diccionario que armamos en el Gestor
-            # 1. Rellenamos los campos de solo lectura
             self.mod_placa.setText(resultado["placa"])
             self.mod_marca.setText(resultado["marca"])
             self.mod_modelo.setText(resultado["modelo"])
@@ -228,14 +189,11 @@ class PanelVehiculos(QWidget):
             self.mod_clase.setText(resultado["clase"])
             self.mod_id_propietario.setText(str(resultado["id_propietario"]))
             
-            # 2. Ajustamos los menús desplegables editables a su valor actual
             self.mod_color.setCurrentText(resultado["color"])
             self.mod_estado.setCurrentText(resultado["estado_legal"])
             
-            # Mensaje opcional para que el operador sepa que todo salió bien
             QMessageBox.information(self, "Vehículo Encontrado", "Datos cargados correctamente. Modifique lo necesario.")
         else:
-            # Si no existe, vaciamos el formulario y mostramos el error
             self.limpiar_formulario_modificar()
             QMessageBox.critical(self, "No encontrado", resultado)
 
@@ -247,6 +205,6 @@ class PanelVehiculos(QWidget):
         self.mod_anio.clear()
         self.mod_clase.clear()
         self.mod_id_propietario.clear()
-        # Regresamos los combos al primer elemento por defecto
+        
         self.mod_color.setCurrentIndex(0)
         self.mod_estado.setCurrentIndex(0)
