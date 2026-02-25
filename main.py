@@ -1,9 +1,9 @@
 import sys
 from PySide6.QtWidgets import QApplication
-
 # 1. Importamos la ventana principal directamente
 from views.principal import VentanaPrincipal
 import views.estilos as estilos
+
 # from views.login import VentanaLogin # <-- Lo silenciamos temporalmente
 
 # ==========================================
