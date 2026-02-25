@@ -9,10 +9,12 @@ from logic.gestor_vehiculos import GestorVehiculos
 # [REFACTORIZACIÓN]: Nombramos la clase específicamente para su función.
 # Hereda de QWidget, lo que la convierte en una pestaña autosuficiente.
 class TabModificarVehiculo(QWidget):
-    def __init__(self):
+    def __init__(self, usuario_actual):
         super().__init__()
+        self.usuario_actual = usuario_actual
         self.configurar_ui()
-
+        self.aplicar_permisos()
+        
     def configurar_ui(self):
         # [REFACTORIZACIÓN]: El layout base se aplica a 'self' (esta pestaña), 
         # eliminando la referencia a 'self.tab_modificar' que existía en el panel general.
@@ -236,4 +238,20 @@ class TabModificarVehiculo(QWidget):
         else:
             QMessageBox.critical(self, "Error al Actualizar", mensaje)
             
-    
+    # ==========================================
+    # SEGURIDAD Y PERMISOS (RBAC)
+    # ==========================================
+    def aplicar_permisos(self):
+        """Bloquea o esconde elementos visuales según el rol del usuario."""
+        rol = self.usuario_actual.rol
+        
+        # Si es Agente de Tránsito [2] o Supervisor [3]
+        if rol in [cat.ROLES_USUARIO[2], cat.ROLES_USUARIO[3]]:
+            # 1. Escondemos por completo los botones de acción
+            self.btn_actualizar.setVisible(False)
+            self.btn_cambiar_propietario.setVisible(False)
+            self.btn_cambiar_placa.setVisible(False)
+            
+            # 2. Bloqueamos los menús desplegables
+            self.mod_color.setEnabled(False)
+            self.mod_estado.setEnabled(False)

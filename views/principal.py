@@ -68,7 +68,7 @@ class VentanaPrincipal(QMainWindow):
         self.vista_inicio.setStyleSheet("font-size: 24px;")
 
         # Instanciamos los archivos que ya tienes creados
-        self.vista_vehiculos = PanelVehiculos()
+        self.vista_vehiculos = PanelVehiculos(self.usuario)
         self.vista_multas = PanelMultas()
         
         # Vistas placeholder temporales para los archivos que aún no creamos
