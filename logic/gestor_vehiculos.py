@@ -113,6 +113,39 @@ class GestorVehiculos:
 
 
     @staticmethod
+    def actualizar_vehiculo(vin: str, color: str, estado_legal: str) -> tuple[bool, str]:
+        """
+        Actualiza únicamente los campos permitidos (color y estado_legal) de un vehículo existente.
+        """
+        # (Opcional) Aquí podrías llamar al Validador.validar_color_vehiculo si lo deseas, 
+        # aunque el QComboBox del frontend ya nos protege bastante.
+        
+        try:
+            conexion = obtener_conexion()
+            cursor = conexion.cursor()
+            
+            # Ejecutamos el comando UPDATE de SQL
+            cursor.execute('''
+                UPDATE vehiculos 
+                SET color = ?, estado_legal = ? 
+                WHERE vin = ?
+            ''', (color, estado_legal, vin))
+            
+            # Verificamos si realmente se modificó alguna fila
+            if cursor.rowcount == 0:
+                return False, "No se pudo actualizar. El vehículo no existe o no hubo cambios."
+                
+            conexion.commit()
+            return True, "Datos del vehículo actualizados correctamente."
+            
+        except Exception as e:
+            return False, f"Error al actualizar en la base de datos: {str(e)}"
+        finally:
+            if 'conexion' in locals():
+                conexion.close()
+    
+    
+    @staticmethod
     def modificar_vehiculo(vin, nueva_placa, nuevo_color, nuevo_estado_legal):
         """
         Modifica los datos permitidos de un vehículo (Placa, Color, Estado legal).
