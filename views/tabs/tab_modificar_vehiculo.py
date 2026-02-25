@@ -44,27 +44,21 @@ class TabModificarVehiculo(QWidget):
         # --- CAMPOS DE SOLO LECTURA ---
         self.mod_marca = QLineEdit()
         self.mod_marca.setReadOnly(True)
-        self.mod_marca.setStyleSheet("background-color: #e0e0e0; color: #555;") 
-        
+
         self.mod_modelo = QLineEdit()
         self.mod_modelo.setReadOnly(True)
-        self.mod_modelo.setStyleSheet("background-color: #e0e0e0; color: #555;")
-        
+
         self.mod_anio = QLineEdit()
         self.mod_anio.setReadOnly(True)
-        self.mod_anio.setStyleSheet("background-color: #e0e0e0; color: #555;")
 
         self.mod_clase = QLineEdit()
         self.mod_clase.setReadOnly(True)
-        self.mod_clase.setStyleSheet("background-color: #e0e0e0; color: #555;")
 
         # --- CAMPO PROPIETARIO (Lectura + Botón) ---
         self.mod_id_propietario = QLineEdit()
         self.mod_id_propietario.setReadOnly(True)
-        self.mod_id_propietario.setStyleSheet("background-color: #e0e0e0; color: #555;")
-        
+
         self.btn_cambiar_propietario = QPushButton("Cambio de Propietario")
-        self.btn_cambiar_propietario.setStyleSheet("background-color: #9b59b6; color: white; font-weight: bold;")
         self.btn_cambiar_propietario.clicked.connect(self.abrir_ventana_cambio_propietario)
 
         layout_propietario = QHBoxLayout()
@@ -74,7 +68,6 @@ class TabModificarVehiculo(QWidget):
         # --- CAMPO PLACAS (Lectura + Botón) ---
         self.mod_placa = QLineEdit()
         self.mod_placa.setReadOnly(True)
-        self.mod_placa.setStyleSheet("background-color: #e0e0e0; color: #555;")
         
         self.btn_cambiar_placa = QPushButton("Realizar Reemplacamiento")
         self.btn_cambiar_placa.setStyleSheet("background-color: #3498db; color: white; font-weight: bold;")
