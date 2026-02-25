@@ -108,6 +108,8 @@ class TabModificarVehiculo(QWidget):
         self.btn_actualizar = QPushButton("Actualizar Datos")
         self.btn_actualizar.setStyleSheet("background-color: #f39c12; color: white; font-weight: bold; padding: 10px;")
         
+        self.btn_actualizar.clicked.connect(self.procesar_actualizacion)
+        
         layout.addStretch() 
         layout.addWidget(self.btn_actualizar, alignment=Qt.AlignRight)
 
@@ -208,3 +210,30 @@ class TabModificarVehiculo(QWidget):
         
         self.mod_color.setCurrentIndex(0)
         self.mod_estado.setCurrentIndex(0)
+        
+    def procesar_actualizacion(self):
+        """Captura los datos permitidos y los envía al backend para actualizar."""
+        
+        # 1. Frontend Defensivo: Verificamos que realmente haya un vehículo cargado en pantalla
+        # Si la caja de la placa está vacía, es porque no han buscado nada aún
+        if not self.mod_placa.text():
+            QMessageBox.warning(self, "Acción Inválida", "Primero debe buscar y cargar un vehículo antes de actualizar.")
+            return
+
+        # 2. Extraemos el VIN original y los nuevos valores de los combos
+        vin_objetivo = self.input_buscar_vin.text().strip().upper()
+        nuevo_color = self.mod_color.currentText()
+        nuevo_estado = self.mod_estado.currentText()
+        
+        # 3. Mandamos al Gestor a hacer el UPDATE
+        exito, mensaje = GestorVehiculos.actualizar_vehiculo(vin_objetivo, nuevo_color, nuevo_estado)
+        
+        # 4. Retroalimentación visual
+        if exito:
+            QMessageBox.information(self, "Actualización Exitosa", mensaje)
+            self.limpiar_formulario_modificar()
+            self.input_buscar_vin.clear() # Limpiamos el buscador para dejar todo como nuevo
+        else:
+            QMessageBox.critical(self, "Error al Actualizar", mensaje)
+            
+    
