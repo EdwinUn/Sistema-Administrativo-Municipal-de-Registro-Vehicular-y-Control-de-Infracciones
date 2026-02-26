@@ -83,3 +83,17 @@ class GestorAgentes:
             return False, f"Error inesperado al modificar el agente: {str(e)}"
         finally:
             conexion.close()
+            
+    @staticmethod
+    def obtener_agentes_para_combo():
+        """Devuelve la lista de agentes activos para llenar el formulario de multas."""
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        try:
+            # Solo traemos a los activos, porque un agente despedido no puede poner multas
+            cursor.execute("SELECT id_agente, numero_placa, nombre_completo FROM agentes WHERE estado = 'Activo'")
+            return True, cursor.fetchall()
+        except Exception as e:
+            return False, []
+        finally:
+            conexion.close()

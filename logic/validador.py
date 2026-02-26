@@ -1,8 +1,8 @@
 import re
 from datetime import datetime
 import logic.catalogos as cat
+import re
 
-#TODO Mejora
 class Validador:
     """
     Clase centralizada para validaciones de formato, longitud y catálogos.
@@ -24,7 +24,16 @@ class Validador:
     def validar_placa(placa: str) -> tuple[bool, str]:
         if not placa or placa.strip() == "":
             return False, "La placa no puede quedar vacía."
-        # Aquí puedes agregar un Regex específico si el municipio tiene un formato exacto.
+            
+        placa_limpia = placa.strip().upper()
+        
+        # Patrón Regex para placas oficiales (autos privados en México/Yucatán)
+        # Acepta: YAA-123-A | YAB-12-34 | YYZ-1234
+        patron_placa = r"^[A-Z]{3}-\d{3}-[A-Z]$|^[A-Z]{3}-\d{2}-\d{2}$|^[A-Z]{3}-\d{4}$"
+        
+        if not re.match(patron_placa, placa_limpia):
+            return False, "Formato inválido. Use guiones (Ej. YAA-123-A, YAB-12-34 o ABC-1234)."
+            
         return True, ""
 
     @staticmethod
@@ -106,9 +115,16 @@ class Validador:
 
     @staticmethod
     def validar_curp(curp: str) -> tuple[bool, str]:
-        patron_curp = r'^[A-Z0-9]{18}$' 
-        if not re.match(patron_curp, curp):
-            return False, "La CURP debe contener exactamente 18 caracteres alfanuméricos."
+        if not curp or curp.strip() == "":
+            return False, "La CURP no puede quedar vacía."
+
+        curp_limpia = curp.strip().upper()
+
+        # Patrón oficial de la CURP en México
+        patron_curp = r"^[A-Z]{4}\d{6}[HMX][A-Z]{2}[A-Z]{3}[A-Z0-9]\d$"
+        if not re.match(patron_curp, curp_limpia):
+            return False, "Formato de CURP inválido. Verifique las letras, fecha de nacimiento y homoclave."
+            
         return True, ""
 
     @staticmethod

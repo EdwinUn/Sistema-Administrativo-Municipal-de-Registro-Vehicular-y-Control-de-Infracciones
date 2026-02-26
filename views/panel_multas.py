@@ -6,6 +6,7 @@ import logic.catalogos as cat
 #Importaciones backend
 from models.infraccion import Infraccion
 from logic.gestor_infracciones import GestorInfracciones
+from logic.gestor_agentes import GestorAgentes
 class PanelMultas(QWidget):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -69,9 +70,17 @@ class PanelMultas(QWidget):
         self.input_vin = QLineEdit()
         self.input_vin.setPlaceholderText("VIN del vehículo infractor")
         
-        self.input_id_agente = QLineEdit()
-        self.input_id_agente.setPlaceholderText("ID interno del Agente")
-
+        self.combo_agentes = QComboBox()
+        self.combo_agentes.addItem("Seleccione al agente que levantó la multa...", None)
+        
+        # Llamamos al backend para llenar el menú
+        exito, lista_agentes = GestorAgentes.obtener_agentes_para_combo()
+        if exito:
+            for id_agente, placa, nombre in lista_agentes:
+                # El usuario lee "AG-101 - Ricardo", pero el sistema guarda el ID (1)
+                self.combo_agentes.addItem(f"{placa} - {nombre}", id_agente)
+                
+        formulario.addRow("Agente de Tránsito:", self.combo_agentes)
         # 2. Datos de Tiempo (QDateEdit y QTimeEdit)
         # Estos widgets muestran un calendario y un reloj respectivamente.
         # Evitan que el usuario escriba formatos erróneos como "12-enero-2026".
@@ -106,7 +115,7 @@ class PanelMultas(QWidget):
 
         # Agregamos todas las filas al formulario alineado
         formulario.addRow("VIN Infractor:", self.input_vin)
-        formulario.addRow("ID Agente Emisor:", self.input_id_agente)
+        formulario.addRow("Agente de Tránsito:", self.combo_agentes)
         formulario.addRow("Fecha del hecho:", self.input_fecha)
         formulario.addRow("Hora del hecho:", self.input_hora)
         formulario.addRow("Lugar:", self.input_lugar)
@@ -186,7 +195,6 @@ class PanelMultas(QWidget):
     def procesar_registro(self):
         """Extrae los datos, los empaqueta y los envía al Gestor para guardar en SQLite."""
         vin = self.input_vin.text().strip().upper()
-        id_agente_str = self.input_id_agente.text().strip()
         lugar = self.input_lugar.text().strip().upper()
         motivo = self.input_motivo.text().strip().upper()
         tipo_infraccion = self.combo_tipo.currentText()
@@ -198,17 +206,20 @@ class PanelMultas(QWidget):
         fecha = self.input_fecha.date().toString("yyyy-MM-dd")
         hora = self.input_hora.time().toString("HH:mm")
 
-        # 1. Validación preventiva en frontend (campos vacíos)
-        if not vin or not id_agente_str or not lugar or not motivo:
+        # === CAMBIO CLAVE: Extraemos el ID numérico oculto del agente ===
+        id_agente = self.combo_agentes.currentData()
+
+        # 1. Validación preventiva en frontend (campos de texto)
+        if not vin or not lugar or not motivo:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor llene todos los campos obligatorios.")
             return
             
-        # 2. Convertimos el ID del agente a número de forma segura
-        try:
-            id_agente = int(id_agente_str)
-        except ValueError:
-            QMessageBox.warning(self, "Dato Inválido", "El ID del agente debe ser numérico.")
+        # 2. Validación para asegurar que seleccionaron un agente válido
+        if not id_agente:
+            QMessageBox.warning(self, "Agente no seleccionado", "Por favor, seleccione al Agente de Tránsito que levantó la boleta.")
             return
+
+        # (Ya no necesitamos el try/except de ValueError porque currentData() ya nos da el número limpio)
 
         # 3. Empaquetamos en el Modelo
         nueva_infraccion = Infraccion(
@@ -224,6 +235,8 @@ class PanelMultas(QWidget):
         if exito:
             QMessageBox.information(self, "Éxito", msj)
             self.limpiar_formulario_registro()
+            # Opcional: regresar el combo de agentes a su estado original (índice 0)
+            self.combo_agentes.setCurrentIndex(0) 
         else:
             QMessageBox.critical(self, "Error al Registrar", msj)
 
