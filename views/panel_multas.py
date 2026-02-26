@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
 QLineEdit, QPushButton, QComboBox, QTabWidget, 
-QFormLayout, QDoubleSpinBox, QDateEdit, QTimeEdit)
+QFormLayout, QDoubleSpinBox, QDateEdit, QTimeEdit, QMessageBox)
 from PySide6.QtCore import Qt, QDate, QTime
 import logic.catalogos as cat
-
-
+#Importaciones backend
+from models.infraccion import Infraccion
+from logic.gestor_infracciones import GestorInfracciones
 class PanelMultas(QWidget):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -120,6 +121,8 @@ class PanelMultas(QWidget):
         # Botón para procesar el registro
         self.btn_registrar = QPushButton("Emitir Infracción")
         self.btn_registrar.setStyleSheet("background-color: #c0392b; color: white; font-weight: bold; padding: 10px;")
+        #Conexion con backend
+        self.btn_registrar.clicked.connect(self.procesar_registro)
         
         layout.addWidget(self.btn_registrar, alignment=Qt.AlignRight)
 
@@ -159,6 +162,8 @@ class PanelMultas(QWidget):
         # 3. Zona inferior: Botón de acción
         self.btn_actualizar_estado = QPushButton("Aplicar Cambio de Estado")
         self.btn_actualizar_estado.setStyleSheet("background-color: #2980b9; color: white; font-weight: bold; padding: 10px;")
+        #Conexion con backend
+        self.btn_actualizar_estado.clicked.connect(self.procesar_cambio_estado)
         
         layout.addStretch() # Empuja el botón al fondo de la pestaña
         layout.addWidget(self.btn_actualizar_estado, alignment=Qt.AlignRight)
@@ -174,3 +179,79 @@ class PanelMultas(QWidget):
             # El supervisor solo audita, no puede cobrar ni cancelar 
             self.btn_actualizar_estado.setVisible(False)
             self.combo_nuevo_estado.setEnabled(False)
+            
+    # ==========================================
+    # LÓGICA DE INTERFAZ Y BACKEND
+    # ==========================================
+    def procesar_registro(self):
+        """Extrae los datos, los empaqueta y los envía al Gestor para guardar en SQLite."""
+        vin = self.input_vin.text().strip().upper()
+        id_agente_str = self.input_id_agente.text().strip()
+        lugar = self.input_lugar.text().strip().upper()
+        motivo = self.input_motivo.text().strip().upper()
+        tipo_infraccion = self.combo_tipo.currentText()
+        tipo_captura = self.combo_captura.currentText()
+        monto = self.input_monto.value()
+        licencia = self.input_licencia.text().strip().upper()
+
+        # Extraemos la fecha y hora de los widgets especiales en el formato que pide el validador
+        fecha = self.input_fecha.date().toString("yyyy-MM-dd")
+        hora = self.input_hora.time().toString("HH:mm")
+
+        # 1. Validación preventiva en frontend (campos vacíos)
+        if not vin or not id_agente_str or not lugar or not motivo:
+            QMessageBox.warning(self, "Campos Incompletos", "Por favor llene todos los campos obligatorios.")
+            return
+            
+        # 2. Convertimos el ID del agente a número de forma segura
+        try:
+            id_agente = int(id_agente_str)
+        except ValueError:
+            QMessageBox.warning(self, "Dato Inválido", "El ID del agente debe ser numérico.")
+            return
+
+        # 3. Empaquetamos en el Modelo
+        nueva_infraccion = Infraccion(
+            vin_infractor=vin, id_agente=id_agente, fecha=fecha, hora=hora,
+            lugar=lugar, tipo_infraccion=tipo_infraccion, motivo=motivo,
+            monto=monto, licencia_conductor=licencia
+        )
+
+        # 4. Enviamos al Gestor
+        exito, msj = GestorInfracciones.registrar_infraccion(nueva_infraccion, tipo_captura)
+
+        # 5. Retroalimentación visual
+        if exito:
+            QMessageBox.information(self, "Éxito", msj)
+            self.limpiar_formulario_registro()
+        else:
+            QMessageBox.critical(self, "Error al Registrar", msj)
+
+    def procesar_cambio_estado(self):
+        """Envía la orden de cobro o cancelación al Gestor."""
+        folio = self.input_buscar_folio.text().strip().upper()
+        nuevo_estado = self.combo_nuevo_estado.currentText()
+        
+        if not folio:
+            QMessageBox.warning(self, "Falta Folio", "Por favor ingrese el folio de la infracción.")
+            return
+            
+        exito, msj = GestorInfracciones.cambiar_estado_infraccion(folio, nuevo_estado)
+        
+        if exito:
+            QMessageBox.information(self, "Actualización Exitosa", msj)
+            self.input_buscar_folio.clear()
+        else:
+            QMessageBox.critical(self, "Error", msj)
+            
+    def limpiar_formulario_registro(self):
+        """Limpia el formulario después de un registro exitoso."""
+        self.input_vin.clear()
+        self.input_id_agente.clear()
+        self.input_lugar.clear()
+        self.input_motivo.clear()
+        self.input_licencia.clear()
+        
+        self.input_monto.setValue(1.0)
+        self.combo_tipo.setCurrentIndex(0)
+        self.combo_captura.setCurrentIndex(0)
