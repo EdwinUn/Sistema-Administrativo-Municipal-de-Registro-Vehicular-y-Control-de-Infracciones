@@ -209,17 +209,34 @@ class PanelMultas(QWidget):
         # === CAMBIO CLAVE: Extraemos el ID numérico oculto del agente ===
         id_agente = self.combo_agentes.currentData()
 
-        # 1. Validación preventiva en frontend (campos de texto)
+        # 1. Validación preventiva en frontend (campos de texto vacíos)
         if not vin or not lugar or not motivo:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor llene todos los campos obligatorios.")
             return
+
+        # ==========================================
+        # 🚨 NUEVOS FILTROS ESTRICTOS (ANTIBASURA) 🚨
+        # ==========================================
+        # A. El VIN debe cumplir su estándar de 17 caracteres
+        if len(vin) != 17:
+            QMessageBox.warning(self, "VIN Inválido", "El VIN debe tener exactamente 17 caracteres alfanuméricos.")
+            return
+            
+        # B. Evitar datos fantasma ("X", "A", "1")
+        if len(lugar) < 5 or len(motivo) < 5:
+            QMessageBox.warning(self, "Detalles Insuficientes", "El 'Lugar' y el 'Motivo' deben ser descriptivos (mínimo 5 caracteres).")
+            return
+            
+        # C. Evitar multas gratis o negativas
+        if monto <= 0:
+            QMessageBox.warning(self, "Monto Inválido", "El monto de la infracción debe ser mayor a $0.00.")
+            return
+        # ==========================================
             
         # 2. Validación para asegurar que seleccionaron un agente válido
         if not id_agente:
             QMessageBox.warning(self, "Agente no seleccionado", "Por favor, seleccione al Agente de Tránsito que levantó la boleta.")
             return
-
-        # (Ya no necesitamos el try/except de ValueError porque currentData() ya nos da el número limpio)
 
         # 3. Empaquetamos en el Modelo
         nueva_infraccion = Infraccion(

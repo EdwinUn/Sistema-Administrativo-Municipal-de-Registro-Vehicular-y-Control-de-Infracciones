@@ -196,15 +196,14 @@ class Validador:
     # =========================
 
     @staticmethod
-    def validar_monto(monto: float) -> tuple[bool, str]:
-        """
-        Valida que el monto sea un número y estrictamente mayor a cero[cite: 197, 262, 354, 355].
-        """
-        if not isinstance(monto, (int, float)):
-            return False, "El monto de la infracción debe ser numérico."
-        if monto <= 0:
-            return False, "El monto de la infracción debe ser mayor a cero."
-        return True, ""
+    def validar_monto(monto) -> tuple[bool, str]:
+        try:
+            monto_float = float(monto)
+            if monto_float <= 0:
+                return False, "El monto de la infracción debe ser mayor a $0.00."
+            return True, ""
+        except ValueError:
+            return False, "El monto debe ser un valor numérico válido."
 
     @staticmethod
     def validar_tipo_infraccion(tipo: str) -> tuple[bool, str]:
@@ -254,15 +253,11 @@ class Validador:
 
     @staticmethod
     def validar_lugar_motivo(lugar: str, motivo: str) -> tuple[bool, str]:
-        """
-        Valida que el lugar y el motivo no estén vacíos, ya que son atributos 
-        estructurales obligatorios del acto administrativo[cite: 131, 133].
-        """
         if not lugar or len(lugar.strip()) < 5:
-            return False, "El lugar de la infracción debe ser especificado claramente (mínimo 5 caracteres)."
-        
+            return False, "El lugar de la infracción debe ser más específico (mínimo 5 caracteres)."
+            
         if not motivo or len(motivo.strip()) < 5:
-            return False, "El motivo o artículo del reglamento no puede quedar vacío (mínimo 5 caracteres)."
+            return False, "El motivo de la infracción debe ser detallado (mínimo 5 caracteres)."
             
         return True, ""
 
