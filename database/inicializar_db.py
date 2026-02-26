@@ -79,7 +79,8 @@ def crear_tablas():
             nombre_usuario TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             rol TEXT NOT NULL,
-            estado TEXT DEFAULT 'Activo'
+            estado TEXT DEFAULT 'Activo',
+            debe_cambiar_password INTEGER DEFAULT 1  -- <--- ESTE ES EL AÑADIDO
         )
     ''')
 

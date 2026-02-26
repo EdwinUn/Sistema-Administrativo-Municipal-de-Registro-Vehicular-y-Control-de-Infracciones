@@ -70,7 +70,7 @@ class Auth:
         try:
             # Buscamos al usuario por nombre y contraseña encriptada
             cursor.execute('''
-                SELECT id_usuario, nombre_usuario, rol, estado 
+                SELECT id_usuario, nombre_usuario, rol, estado, debe_cambiar_password 
                 FROM usuarios 
                 WHERE nombre_usuario = ? AND password = ?
             ''', (nombre_usuario, password_hash))
@@ -78,26 +78,45 @@ class Auth:
             resultado = cursor.fetchone()
 
             if not resultado:
-                return False, None, "Error: Credenciales incorrectas."
+                return False, None, "Error: Credenciales incorrectas.", False
 
-            id_usuario, nombre_db, rol_db, estado_db = resultado
+            id_usuario, nombre_db, rol_db, estado_db, debe_cambiar = resultado
 
-            # Regla de negocio: No permitir el acceso a usuarios inactivos
             if estado_db != "Activo":
-                return False, None, "Error: Su cuenta de usuario está inactiva. Contacte al administrador."
+                return False, None, "Error: Su cuenta está inactiva.", False
 
-            # Si todo está correcto, reconstruimos el modelo Usuario para enviarlo a la interfaz
             usuario_autenticado = Usuario(
-                id_usuario=id_usuario,
-                nombre_usuario=nombre_db,
-                password="***", # Por seguridad, no devolvemos el hash a la memoria de la interfaz
-                rol=rol_db,
-                estado=estado_db
+                id_usuario=id_usuario, nombre_usuario=nombre_db, 
+                password="***", rol=rol_db, estado=estado_db
             )
 
-            return True, usuario_autenticado, f"Bienvenido, {nombre_db}. Su rol es {rol_db}."
+            # ¡OJO! Ahora retornamos 4 valores: (éxito, usuario, mensaje, bandera_cambio)
+            return True, usuario_autenticado, f"Bienvenido, {nombre_db}.", bool(debe_cambiar)
 
         except Exception as e:
             return False, None, f"Error inesperado al intentar iniciar sesión: {str(e)}"
+        finally:
+            conexion.close()
+            
+    @staticmethod
+    def cambiar_password_obligatorio(id_usuario, nueva_password):
+        """Sobrescribe la contraseña temporal y quita la bandera de cambio."""
+        if len(nueva_password) < 6:
+            return False, "La nueva contraseña debe tener al menos 6 caracteres."
+            
+        password_hash = Auth._hashear_password(nueva_password)
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        
+        try:
+            cursor.execute('''
+                UPDATE usuarios 
+                SET password = ?, debe_cambiar_password = 0 
+                WHERE id_usuario = ?
+            ''', (password_hash, id_usuario))
+            conexion.commit()
+            return True, "Contraseña actualizada exitosamente."
+        except Exception as e:
+            return False, f"Error al actualizar contraseña: {str(e)}"
         finally:
             conexion.close()

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, 
-QLineEdit, QPushButton, QMessageBox)
+QLineEdit, QPushButton, QMessageBox, QInputDialog)
 from PySide6.QtCore import Qt
 from logic.auth import Auth
 
@@ -7,7 +7,7 @@ from logic.auth import Auth
 from views.principal import VentanaPrincipal
 
 class VentanaLogin(QWidget):
-    def __init__(self): # <--- NOTA: Aquí está vacío, no pide usuario. Esto arregla tu error.
+    def __init__(self): 
         super().__init__()
         self.setWindowTitle("Sistema de Registro Vehicular - Login")
         self.resize(350, 450)
@@ -56,10 +56,30 @@ class VentanaLogin(QWidget):
 
         self.label_error.hide()
 
-        # Llamada a la capa lógica para conectar con SQLite
-        es_valido, usuario_obj, msj = Auth.autenticar_usuario(usuario, password)
+        # === CAMBIO CLAVE: Ahora Auth devuelve 4 valores ===
+        es_valido, usuario_obj, msj, debe_cambiar = Auth.autenticar_usuario(usuario, password)
 
         if es_valido:
+            # === MECANISMO DE SEGURIDAD (PASSWORD TEMPORAL) ===
+            if debe_cambiar:
+                nueva_pass, ok = QInputDialog.getText(
+                    self, "Seguridad Requerida", 
+                    f"Bienvenido {usuario}.\nSu contraseña es temporal. Por favor ingrese una nueva:", 
+                    QLineEdit.Password
+                )
+                
+                if ok and nueva_pass:
+                    # Intentamos guardar la nueva contraseña encriptada
+                    cambio_ok, msj_cambio = Auth.cambiar_password_obligatorio(usuario_obj.id_usuario, nueva_pass)
+                    if not cambio_ok:
+                        QMessageBox.warning(self, "Error de Validación", msj_cambio)
+                        return # Detenemos el acceso porque la nueva contraseña no cumplió reglas
+                else:
+                    # Si el usuario cancela el diálogo, no lo dejamos entrar
+                    QMessageBox.warning(self, "Acceso Denegado", "Es obligatorio cambiar la contraseña temporal.")
+                    return
+
+            # Si todo está bien (o no debía cambiarla), pasamos al sistema
             self.abrir_pantalla_principal(usuario_obj)
         else:
             self.label_error.setText(msj)
@@ -69,9 +89,6 @@ class VentanaLogin(QWidget):
         """
         Cierra el login y levanta el menú principal inyectando el usuario.
         """
-        # Aquí le pasamos el objeto a la VentanaPrincipal
         self.ventana_principal = VentanaPrincipal(usuario_obj)
         self.ventana_principal.show()
-        
-        # Cerramos la ventanita de login
         self.close()

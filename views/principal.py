@@ -2,12 +2,13 @@ from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
 QPushButton, QStackedWidget, QLabel, QFrame)
 from PySide6.QtCore import Qt
 
-# Importamos los paneles que ya tienes en tu estructura de views
-# Asumimos que dentro tienen clases base llamadas PanelVehiculos y PanelMultas
+# Importación de paneles de viewas
 from views.panel_vehiculos import PanelVehiculos
 from views.panel_multas import PanelMultas
 from views.panel_propietarios import PanelPropietarios
 from views.panel_reportes import PanelReportes
+from views.panel_usuarios import PanelUsuarios
+
 class VentanaPrincipal(QMainWindow):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -68,14 +69,12 @@ class VentanaPrincipal(QMainWindow):
         self.vista_inicio.setAlignment(Qt.AlignCenter)
         self.vista_inicio.setStyleSheet("font-size: 24px;")
 
-        # Instanciamos los archivos que ya tienes creados
+        # Instanciamos los archivos creados
         self.vista_vehiculos = PanelVehiculos(self.usuario)
         self.vista_multas = PanelMultas(self.usuario)
         self.vista_propietarios = PanelPropietarios(self.usuario)
         self.vista_reportes = PanelReportes(self.usuario)
-        
-        #Aun no creados
-        self.vista_usuarios = QLabel("Módulo de Usuarios en construcción...")
+        self.vista_usuarios = PanelUsuarios(self.usuario)
 
         # Agregar las vistas al QStackedWidget (El orden importa para los índices)
         self.stacked_widget.addWidget(self.vista_inicio)       # Índice 0
