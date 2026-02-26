@@ -128,7 +128,8 @@ class TabModificarPropietario(QWidget):
         exito, resultado = GestorPropietarios.buscar_propietario_por_curp(curp_buscada)
         
         if exito:
-            self.mod_id.setText(str(resultado["id_propietario"]))
+            id_real = resultado["id_propietario"]
+            self.mod_id.setText(f"PRP-{id_real:05d}")
             self.mod_nombre.setText(resultado["nombre_completo"])
             self.mod_curp.setText(resultado["curp"])
             self.mod_direccion.setText(resultado["direccion"])
@@ -168,6 +169,7 @@ class TabModificarPropietario(QWidget):
         estado = self.mod_estado.currentText()
         
         # Extraemos el ID numérico que el backend exige
+        texto_id = self.mod_id.text().replace("PRP-", "")
         id_objetivo = int(self.mod_id.text())
 
         # Validaciones básicas antes de enviar

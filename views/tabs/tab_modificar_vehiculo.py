@@ -190,8 +190,8 @@ class TabModificarVehiculo(QWidget):
             self.mod_modelo.setText(resultado["modelo"])
             self.mod_anio.setText(str(resultado["anio"]))
             self.mod_clase.setText(resultado["clase"])
-            self.mod_id_propietario.setText(str(resultado["id_propietario"]))
-            
+            id_prop = resultado["id_propietario"]
+            self.mod_id_propietario.setText(f"PRP-{id_prop:05d}")
             self.mod_color.setCurrentText(resultado["color"])
             self.mod_estado.setCurrentText(resultado["estado_legal"])
             
