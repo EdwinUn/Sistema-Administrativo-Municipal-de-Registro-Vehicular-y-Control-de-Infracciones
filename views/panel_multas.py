@@ -3,10 +3,13 @@ QLineEdit, QPushButton, QComboBox, QTabWidget,
 QFormLayout, QDoubleSpinBox, QDateEdit, QTimeEdit, QMessageBox)
 from PySide6.QtCore import Qt, QDate, QTime
 import logic.catalogos as cat
+
 #Importaciones backend
 from models.infraccion import Infraccion
 from logic.gestor_infracciones import GestorInfracciones
 from logic.gestor_agentes import GestorAgentes
+from logic.gestor_vehiculos import GestorVehiculos
+
 class PanelMultas(QWidget):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -21,20 +24,16 @@ class PanelMultas(QWidget):
         """
         layout_principal = QVBoxLayout(self)
         
-        # Título principal del módulo
         lbl_titulo = QLabel("Módulo de Infracciones de Tránsito")
         lbl_titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
         lbl_titulo.setAlignment(Qt.AlignCenter)
         layout_principal.addWidget(lbl_titulo)
 
-        # Contenedor de pestañas (QTabWidget)
         self.pestanas = QTabWidget()
         
-        # Creamos los dos "lienzos" en blanco para cada pestaña
         self.tab_registrar = QWidget()
         self.tab_gestionar = QWidget()
         
-        # Llamamos a los métodos que construyen el interior de cada pestaña
         self.construir_tab_registrar()
         self.construir_tab_gestionar()
 
@@ -46,11 +45,9 @@ class PanelMultas(QWidget):
             self.pestanas.addTab(self.tab_gestionar, "Cobro y Cancelación")
             
         elif rol == cat.ROLES_USUARIO[2]: # Agente de Tránsito
-            # Solo ve la pestaña de registro
             self.pestanas.addTab(self.tab_registrar, "Registrar Infracción")
             
         elif rol == cat.ROLES_USUARIO[3]: # Supervisor
-            # Solo ve la pestaña de gestión, pero en modo "Consulta"
             self.pestanas.addTab(self.tab_gestionar, "Consultar Infracción")
 
         layout_principal.addWidget(self.pestanas)
@@ -59,67 +56,61 @@ class PanelMultas(QWidget):
     # PESTAÑA 1: REGISTRAR INFRACCIÓN
     # ==========================================
     def construir_tab_registrar(self):
-        """
-        Construye el formulario para emitir una nueva multa. 
-        Utiliza widgets restrictivos (fechas, números) para garantizar datos limpios.
-        """
         layout = QVBoxLayout(self.tab_registrar)
         formulario = QFormLayout()
         
-        # 1. Datos de Identificación
         self.input_vin = QLineEdit()
-        self.input_vin.setPlaceholderText("VIN del vehículo infractor")
+        self.input_vin.setPlaceholderText("Ingrese VIN o Placa del infractor")
         
         self.combo_agentes = QComboBox()
         self.combo_agentes.addItem("Seleccione al agente que levantó la multa...", None)
         
-        # Llamamos al backend para llenar el menú
         exito, lista_agentes = GestorAgentes.obtener_agentes_para_combo()
         if exito:
             for id_agente, placa, nombre in lista_agentes:
-                # El usuario lee "AG-101 - Ricardo", pero el sistema guarda el ID (1)
                 self.combo_agentes.addItem(f"{placa} - {nombre}", id_agente)
                 
-        formulario.addRow("Agente de Tránsito:", self.combo_agentes)
-        # 2. Datos de Tiempo (QDateEdit y QTimeEdit)
-        # Estos widgets muestran un calendario y un reloj respectivamente.
-        # Evitan que el usuario escriba formatos erróneos como "12-enero-2026".
         self.input_fecha = QDateEdit()
-        self.input_fecha.setCalendarPopup(True) # Muestra un calendario al hacer clic
-        self.input_fecha.setDate(QDate.currentDate()) # Selecciona hoy por defecto
+        self.input_fecha.setCalendarPopup(True)
+        self.input_fecha.setDate(QDate.currentDate())
         
         self.input_hora = QTimeEdit()
-        self.input_hora.setTime(QTime.currentTime()) # Selecciona la hora actual por defecto
+        self.input_hora.setTime(QTime.currentTime())
 
-        # 3. Datos del Hecho
         self.input_lugar = QLineEdit()
+        
         self.input_motivo = QLineEdit()
-        self.input_motivo.setPlaceholderText("Artículos violados o descripción")
-
+        self.input_motivo.setReadOnly(True) # Evita que el usuario lo modifique
+        self.input_motivo.setStyleSheet("background-color: #2c3e50; color: #bdc3c7; font-weight: bold;") # Estilo "Bloqueado" visualmente
+        
+        # === CAMBIO: COMBOBOX INTELIGENTE CON EL TABULADOR ===
         self.combo_tipo = QComboBox()
-        self.combo_tipo.addItems(cat.TIPOS_INFRACCION)
+        for clave, datos in cat.TABULADOR_INFRACCIONES.items():
+            self.combo_tipo.addItem(datos["descripcion"], clave)
 
-        # 4. Datos Económicos (QDoubleSpinBox)
-        # Restringe la entrada exclusivamente a números con decimales.
+        # === NUEVO: ETIQUETA DE RANGO ===
+        self.lbl_rango_monto = QLabel("Rango permitido: $0.00 - $0.00")
+        self.lbl_rango_monto.setStyleSheet("color: #e67e22; font-style: italic; font-weight: bold;")
+
         self.input_monto = QDoubleSpinBox()
-        self.input_monto.setRange(1.0, 999999.99) # Rango permitido
-        self.input_monto.setPrefix("$ ") # Pone el símbolo de moneda visualmente
+        self.input_monto.setRange(1.0, 999999.99)
+        self.input_monto.setPrefix("$ ")
         self.input_monto.setDecimals(2)
 
-        # 5. Datos de Captura y Conductor
         self.combo_captura = QComboBox()
         self.combo_captura.addItems(cat.TIPOS_CAPTURA_INFRACCION)
         
         self.input_licencia = QLineEdit()
         self.input_licencia.setPlaceholderText("Opcional (Obligatorio en sitio)")
 
-        # Agregamos todas las filas al formulario alineado
+        # Agregamos todo al formulario
         formulario.addRow("VIN Infractor:", self.input_vin)
         formulario.addRow("Agente de Tránsito:", self.combo_agentes)
         formulario.addRow("Fecha del hecho:", self.input_fecha)
         formulario.addRow("Hora del hecho:", self.input_hora)
         formulario.addRow("Lugar:", self.input_lugar)
         formulario.addRow("Tipo de Infracción:", self.combo_tipo)
+        formulario.addRow("", self.lbl_rango_monto) # La etiqueta va debajo del tipo de infracción
         formulario.addRow("Motivo:", self.input_motivo)
         formulario.addRow("Monto de la multa:", self.input_monto)
         formulario.addRow("Método de Captura:", self.combo_captura)
@@ -127,25 +118,44 @@ class PanelMultas(QWidget):
 
         layout.addLayout(formulario)
 
-        # Botón para procesar el registro
         self.btn_registrar = QPushButton("Emitir Infracción")
         self.btn_registrar.setStyleSheet("background-color: #c0392b; color: white; font-weight: bold; padding: 10px;")
-        #Conexion con backend
         self.btn_registrar.clicked.connect(self.procesar_registro)
         
         layout.addWidget(self.btn_registrar, alignment=Qt.AlignRight)
+
+        # === CONECTAMOS EL EVENTO Y FORZAMOS LA CARGA INICIAL ===
+        self.combo_tipo.currentIndexChanged.connect(self.actualizar_info_multa)
+        self.actualizar_info_multa() # Llenar los datos de la primera opción al abrir
+
+    # ==========================================
+    # LÓGICA DINÁMICA DE LA INTERFAZ
+    # ==========================================
+    def actualizar_info_multa(self):
+        """Autocompleta el motivo y muestra el rango de precios basado en el tabulador oficial."""
+        clave_seleccionada = self.combo_tipo.currentData()
+        
+        if clave_seleccionada in cat.TABULADOR_INFRACCIONES:
+            datos = cat.TABULADOR_INFRACCIONES[clave_seleccionada]
+            
+            # 1. Actualizar etiqueta de rango
+            minimo = datos["multa"]["min"]
+            maximo = datos["multa"]["max"]
+            self.lbl_rango_monto.setText(f"Rango permitido: ${minimo:,.2f} - ${maximo:,.2f} MXN")
+            
+            # 2. Autocompletar motivo legal
+            motivo_legal = f"{datos['articulo']} - {datos['descripcion']}"
+            self.input_motivo.setText(motivo_legal)
+            
+            # 3. Poner el valor mínimo por defecto
+            self.input_monto.setValue(minimo)
 
     # ==========================================
     # PESTAÑA 2: GESTIONAR ESTADO (COBROS)
     # ==========================================
     def construir_tab_gestionar(self):
-        """
-        Construye la interfaz para buscar una infracción por su folio único
-        y cambiar su estado administrativo (ej. de Pendiente a Pagada).
-        """
         layout = QVBoxLayout(self.tab_gestionar)
         
-        # 1. Zona superior: Búsqueda
         layout_busqueda = QHBoxLayout()
         self.input_buscar_folio = QLineEdit()
         self.input_buscar_folio.setPlaceholderText("Ej: INF-20260223-A1B2C3")
@@ -157,35 +167,23 @@ class PanelMultas(QWidget):
         
         layout.addLayout(layout_busqueda)
 
-        # 2. Zona central: Formulario de actualización
         formulario = QFormLayout()
-        
-        # Desplegable para seleccionar el nuevo estado.
-        # Se omitió "Pendiente" porque las reglas prohíben regresar una multa a ese estado.
         self.combo_nuevo_estado = QComboBox()
         self.combo_nuevo_estado.addItems(["Pagada", "Cancelada"]) 
 
         formulario.addRow("Cambiar estado a:", self.combo_nuevo_estado)
         layout.addLayout(formulario)
 
-        # 3. Zona inferior: Botón de acción
         self.btn_actualizar_estado = QPushButton("Aplicar Cambio de Estado")
         self.btn_actualizar_estado.setStyleSheet("background-color: #2980b9; color: white; font-weight: bold; padding: 10px;")
-        #Conexion con backend
         self.btn_actualizar_estado.clicked.connect(self.procesar_cambio_estado)
         
-        layout.addStretch() # Empuja el botón al fondo de la pestaña
+        layout.addStretch() 
         layout.addWidget(self.btn_actualizar_estado, alignment=Qt.AlignRight)
         
-    # ==========================================
-    # SEGURIDAD Y PERMISOS (RBAC)
-    # ==========================================
     def aplicar_permisos(self):
-        """Bloquea elementos visuales según el rol del usuario."""
         rol = self.usuario_actual.rol
-        
-        if rol == cat.ROLES_USUARIO[3]: # Supervisor
-            # El supervisor solo audita, no puede cobrar ni cancelar 
+        if rol == cat.ROLES_USUARIO[3]: 
             self.btn_actualizar_estado.setVisible(False)
             self.combo_nuevo_estado.setEnabled(False)
             
@@ -193,72 +191,81 @@ class PanelMultas(QWidget):
     # LÓGICA DE INTERFAZ Y BACKEND
     # ==========================================
     def procesar_registro(self):
-        """Extrae los datos, los empaqueta y los envía al Gestor para guardar en SQLite."""
-        vin = self.input_vin.text().strip().upper()
+        # 1. Obtenemos lo que haya escrito (puede ser VIN o Placa)
+        criterio_vehiculo = self.input_vin.text().strip().upper()
+        
         lugar = self.input_lugar.text().strip().upper()
         motivo = self.input_motivo.text().strip().upper()
-        tipo_infraccion = self.combo_tipo.currentText()
+        
+        tipo_texto = self.combo_tipo.currentText() 
+        clave_infraccion = self.combo_tipo.currentData() 
+        
         tipo_captura = self.combo_captura.currentText()
         monto = self.input_monto.value()
         licencia = self.input_licencia.text().strip().upper()
 
-        # Extraemos la fecha y hora de los widgets especiales en el formato que pide el validador
         fecha = self.input_fecha.date().toString("yyyy-MM-dd")
         hora = self.input_hora.time().toString("HH:mm")
-
-        # === CAMBIO CLAVE: Extraemos el ID numérico oculto del agente ===
         id_agente = self.combo_agentes.currentData()
 
-        # 1. Validación preventiva en frontend (campos de texto vacíos)
-        if not vin or not lugar or not motivo:
+        # 2. Validación preventiva
+        if not criterio_vehiculo or not lugar or not motivo:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor llene todos los campos obligatorios.")
             return
 
-        # ==========================================
-        # 🚨 NUEVOS FILTROS ESTRICTOS (ANTIBASURA) 🚨
-        # ==========================================
-        # A. El VIN debe cumplir su estándar de 17 caracteres
-        if len(vin) != 17:
-            QMessageBox.warning(self, "VIN Inválido", "El VIN debe tener exactamente 17 caracteres alfanuméricos.")
+        # (Ya NO validamos len == 17 aquí porque la placa es más corta)
+            
+        if len(lugar) < 5: # El motivo ya no lo validamos así porque el sistema lo pone automáticamente
+            QMessageBox.warning(self, "Detalles Insuficientes", "El 'Lugar' debe ser más descriptivo (mínimo 5 caracteres).")
             return
             
-        # B. Evitar datos fantasma ("X", "A", "1")
-        if len(lugar) < 5 or len(motivo) < 5:
-            QMessageBox.warning(self, "Detalles Insuficientes", "El 'Lugar' y el 'Motivo' deben ser descriptivos (mínimo 5 caracteres).")
-            return
-            
-        # C. Evitar multas gratis o negativas
-        if monto <= 0:
-            QMessageBox.warning(self, "Monto Inválido", "El monto de la infracción debe ser mayor a $0.00.")
-            return
-        # ==========================================
-            
-        # 2. Validación para asegurar que seleccionaron un agente válido
         if not id_agente:
             QMessageBox.warning(self, "Agente no seleccionado", "Por favor, seleccione al Agente de Tránsito que levantó la boleta.")
             return
 
-        # 3. Empaquetamos en el Modelo
+        # ==========================================
+        # 🚨 LA MAGIA: TRADUCIR PLACA A VIN 🚨
+        # ==========================================
+        exito_vehiculo, datos_vehiculo = GestorVehiculos.buscar_vehiculo_universal(criterio_vehiculo)
+        
+        if not exito_vehiculo:
+            QMessageBox.warning(self, "Vehículo No Encontrado", "No existe ningún vehículo registrado con esa Placa o VIN.")
+            return
+            
+        # Extraemos el VIN real de 17 caracteres que nos devolvió el buscador
+        vin_real = datos_vehiculo["vin"] 
+        # ==========================================
+
+        # 🚨 CANDADO JURÍDICO 🚨
+        if clave_infraccion in cat.TABULADOR_INFRACCIONES:
+            datos_oficiales = cat.TABULADOR_INFRACCIONES[clave_infraccion]
+            min_permitido = datos_oficiales["multa"]["min"]
+            max_permitido = datos_oficiales["multa"]["max"]
+            
+            if monto < min_permitido or monto > max_permitido:
+                QMessageBox.critical(self, "Monto Ilegal", 
+                    f"El monto de ${monto:,.2f} está fuera de la ley.\n"
+                    f"Para esta infracción el reglamento exige cobrar entre ${min_permitido:,.2f} y ${max_permitido:,.2f}."
+                )
+                return
+
+        # 3. Empaquetamos en el Modelo usando el VIN_REAL
         nueva_infraccion = Infraccion(
-            vin_infractor=vin, id_agente=id_agente, fecha=fecha, hora=hora,
-            lugar=lugar, tipo_infraccion=tipo_infraccion, motivo=motivo,
+            vin_infractor=vin_real, id_agente=id_agente, fecha=fecha, hora=hora,
+            lugar=lugar, tipo_infraccion=tipo_texto, motivo=motivo,
             monto=monto, licencia_conductor=licencia
         )
 
         # 4. Enviamos al Gestor
         exito, msj = GestorInfracciones.registrar_infraccion(nueva_infraccion, tipo_captura)
 
-        # 5. Retroalimentación visual
         if exito:
             QMessageBox.information(self, "Éxito", msj)
             self.limpiar_formulario_registro()
-            # Opcional: regresar el combo de agentes a su estado original (índice 0)
-            self.combo_agentes.setCurrentIndex(0) 
         else:
             QMessageBox.critical(self, "Error al Registrar", msj)
 
     def procesar_cambio_estado(self):
-        """Envía la orden de cobro o cancelación al Gestor."""
         folio = self.input_buscar_folio.text().strip().upper()
         nuevo_estado = self.combo_nuevo_estado.currentText()
         
@@ -275,13 +282,11 @@ class PanelMultas(QWidget):
             QMessageBox.critical(self, "Error", msj)
             
     def limpiar_formulario_registro(self):
-        """Limpia el formulario después de un registro exitoso."""
+        """Limpia el formulario y resetea los menús después de un registro exitoso."""
         self.input_vin.clear()
-        self.input_id_agente.clear()
         self.input_lugar.clear()
-        self.input_motivo.clear()
         self.input_licencia.clear()
         
-        self.input_monto.setValue(1.0)
         self.combo_tipo.setCurrentIndex(0)
         self.combo_captura.setCurrentIndex(0)
+        self.combo_agentes.setCurrentIndex(0)

@@ -7,12 +7,13 @@ TEMA_OSCURO = """
 QWidget {
     background-color: #1e1e2e;
     color: #cdd6f4;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family: "Segoe UI"; /* SOLUCIÓN: Una sola fuente definida */
     font-size: 14px;
 }
 
-/* Cajas de texto y menús desplegables */
-QLineEdit, QComboBox, QSpinBox {
+/* Cajas de texto, numéricas y menús desplegables */
+/* (Se agregó QDoubleSpinBox para que el campo de multas se vea oscuro) */
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
     background-color: #313244;
     border: 1px solid #45475a;
     border-radius: 5px;
@@ -21,12 +22,12 @@ QLineEdit, QComboBox, QSpinBox {
 }
 
 /* Cuando el usuario selecciona una caja de texto */
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
     border: 1px solid #89b4fa;
 }
 
 /* Cajas de texto bloqueadas (Solo lectura) */
-QLineEdit[readOnly="true"] {
+QLineEdit[readOnly="true"], QDoubleSpinBox[readOnly="true"] {
     background-color: #181825;
     color: #a6adc8;
     border: 1px dashed #45475a;

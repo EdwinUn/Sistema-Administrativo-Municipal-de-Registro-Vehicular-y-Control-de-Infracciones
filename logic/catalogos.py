@@ -191,3 +191,58 @@ ROLES_USUARIO = [
     "Agente de Tránsito",
     "Supervisor"
 ]
+
+TABULADOR_INFRACCIONES = {
+    "EXCESO_VELOCIDAD": {
+        "descripcion": "Exceso de velocidad",
+        "articulo": "Art. 64",
+        "multa": {"min": 1200.00, "max": 2500.00},
+        "puntos": 3,
+        "corralon": False
+    },
+    "ESTACIONAMIENTO_PROHIBIDO": {
+        "descripcion": "Estacionamiento prohibido",
+        "articulo": "Art. 75",
+        "multa": {"min": 600.00, "max": 1200.00},
+        "puntos": 1,
+        "corralon": True
+    },
+    "CINTURON_SEGURIDAD": {
+        "descripcion": "No portar cinturón",
+        "articulo": "Art. 52",
+        "multa": {"min": 900.00, "max": 1500.00},
+        "puntos": 2,
+        "corralon": False
+    },
+    "USO_CELULAR": {
+        "descripcion": "Uso de celular",
+        "articulo": "Art. 53",
+        "multa": {"min": 2000.00, "max": 3500.00},
+        "puntos": 4,
+        "corralon": False
+    },
+    "ALCOHOL_EBRIEDAD": {
+        "descripcion": "Conducir en estado de ebriedad",
+        "articulo": "Art. 99",
+        "multa": {"min": 4500.00, "max": 7000.00},
+        "puntos": 6,
+        "corralon": True,
+        "suspension_licencia": True
+    },
+    "FALTA_DOCUMENTOS": {
+        "descripcion": "Falta de documentos",
+        "articulo": "Art. 34",
+        "multa": {"min": 800.00, "max": 1500.00},
+        "puntos": 0,
+        "corralon": False
+    },
+    "OTRO": {
+        "descripcion": "Otro",
+        "articulo": "Art. 1 (General)",
+        "multa": {"min": 100.00, "max": 10000.00}, # Un rango muy amplio para casos atípicos
+        "puntos": 0,
+        "corralon": False
+    }
+}
+
+TIPOS_INFRACCION = [datos["descripcion"] for datos in TABULADOR_INFRACCIONES.values()]
