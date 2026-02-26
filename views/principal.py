@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 # Asumimos que dentro tienen clases base llamadas PanelVehiculos y PanelMultas
 from views.panel_vehiculos import PanelVehiculos
 from views.panel_multas import PanelMultas
+from views.panel_propietarios import PanelPropietarios
 
 class VentanaPrincipal(QMainWindow):
     def __init__(self, usuario_actual):
@@ -70,9 +71,10 @@ class VentanaPrincipal(QMainWindow):
         # Instanciamos los archivos que ya tienes creados
         self.vista_vehiculos = PanelVehiculos(self.usuario)
         self.vista_multas = PanelMultas()
+        self.vista_propietarios = PanelPropietarios(self.usuario)
         
-        # Vistas placeholder temporales para los archivos que aún no creamos
-        self.vista_propietarios = QLabel("Módulo de Propietarios en construcción...")
+        
+        #Aun no creados
         self.vista_reportes = QLabel("Módulo de Reportes en construcción...")
         self.vista_usuarios = QLabel("Módulo de Usuarios en construcción...")
 
