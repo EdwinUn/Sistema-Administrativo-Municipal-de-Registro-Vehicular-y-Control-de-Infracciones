@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt
 from views.panel_vehiculos import PanelVehiculos
 from views.panel_multas import PanelMultas
 from views.panel_propietarios import PanelPropietarios
-
+from views.panel_reportes import PanelReportes
 class VentanaPrincipal(QMainWindow):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -72,10 +72,9 @@ class VentanaPrincipal(QMainWindow):
         self.vista_vehiculos = PanelVehiculos(self.usuario)
         self.vista_multas = PanelMultas(self.usuario)
         self.vista_propietarios = PanelPropietarios(self.usuario)
-        
+        self.vista_reportes = PanelReportes(self.usuario)
         
         #Aun no creados
-        self.vista_reportes = QLabel("Módulo de Reportes en construcción...")
         self.vista_usuarios = QLabel("Módulo de Usuarios en construcción...")
 
         # Agregar las vistas al QStackedWidget (El orden importa para los índices)
