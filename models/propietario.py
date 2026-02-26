@@ -3,7 +3,7 @@ class Propietario:
     Representa a la persona física responsable legal de uno o más vehículos
     """
     def __init__(self, nombre_completo, curp, direccion, telefono, 
-                 correo_electronico, estado_licencia, estado="Activo", id_propietario=None):
+correo_electronico, estado_licencia, estado="Activo", id_propietario=None):
         
         # El ID es None al crear uno nuevo, pero se llena cuando lo leemos de la base de datos
         self.id_propietario = id_propietario 
