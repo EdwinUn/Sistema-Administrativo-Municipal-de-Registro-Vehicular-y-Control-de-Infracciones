@@ -185,7 +185,7 @@ class PanelMultas(QWidget):
         # 2. ZONA DE ACCIÓN: CAMBIAR ESTADO
         layout_busqueda = QHBoxLayout()
         self.input_buscar_folio = QLineEdit()
-        self.input_buscar_folio.setPlaceholderText("Ej: INF-20260223-A1B2C3")
+        self.input_buscar_folio.setPlaceholderText(" ")
         self.input_buscar_folio.setStyleSheet("font-weight: bold; color: #f9e2af;") 
         
         layout_busqueda.addWidget(QLabel("Folio a Pagar/Cancelar:"))
