@@ -35,3 +35,4 @@ Thumbs.db
 
 # archivo temporal para inicio de sesion
 crear_admin.py
+crear_agente.py
