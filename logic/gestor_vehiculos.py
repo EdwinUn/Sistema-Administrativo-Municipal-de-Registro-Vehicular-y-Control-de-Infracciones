@@ -252,3 +252,39 @@ class GestorVehiculos:
             return True, "Transferencia de propiedad realizada correctamente."
         finally:
             conexion.close()
+            
+    @staticmethod
+    def obtener_estadisticas_dashboard() -> dict:
+        """Devuelve un diccionario con los totales para el panel de inicio."""
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        
+        try:
+            # 1. Total de vehículos registrados
+            cursor.execute("SELECT COUNT(*) FROM vehiculos")
+            total_vehiculos = cursor.fetchone()[0]
+            
+            # 2. Vehículos con reporte de robo/incidencia
+            cursor.execute("SELECT COUNT(*) FROM vehiculos WHERE estado_legal = 'Reportado'")
+            total_reportados = cursor.fetchone()[0]
+            
+            # 3. Multas pendientes de pago
+            cursor.execute("SELECT COUNT(*) FROM infracciones WHERE estado = 'Pendiente'")
+            multas_pendientes = cursor.fetchone()[0]
+            
+            # 4. Dinero recaudado (Multas Pagadas)
+            cursor.execute("SELECT SUM(monto) FROM infracciones WHERE estado = 'Pagada'")
+            recaudacion_bruta = cursor.fetchone()[0]
+            recaudacion = recaudacion_bruta if recaudacion_bruta else 0.0
+
+            return {
+                "total_vehiculos": total_vehiculos,
+                "reportados": total_reportados,
+                "multas_pendientes": multas_pendientes,
+                "recaudacion": recaudacion
+            }
+            
+        except Exception as e:
+            return {"total_vehiculos": 0, "reportados": 0, "multas_pendientes": 0, "recaudacion": 0.0}
+        finally:
+            conexion.close()
