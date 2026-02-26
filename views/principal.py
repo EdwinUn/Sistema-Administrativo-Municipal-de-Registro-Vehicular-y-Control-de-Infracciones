@@ -57,7 +57,12 @@ class VentanaPrincipal(QMainWindow):
         layout_menu.addWidget(self.btn_propietarios)
         layout_menu.addWidget(self.btn_infracciones)
         layout_menu.addWidget(self.btn_reportes)
-        layout_menu.addWidget(self.btn_usuarios)
+        
+        if self.usuario.rol == "Administrador":
+            btn_usuarios = QPushButton("Gestión de Usuarios")
+            # ... lo conectas a tu vista de usuarios ...
+            layout_menu.addWidget(btn_usuarios)
+            layout_menu.addWidget(self.btn_usuarios)
 
         # ==========================
         # 2. ÁREA DE CONTENIDO (QStackedWidget)

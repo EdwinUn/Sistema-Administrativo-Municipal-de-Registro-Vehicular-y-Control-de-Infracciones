@@ -111,7 +111,7 @@ class PanelUsuarios(QWidget):
         """Si por algún motivo alguien que no es Admin llega aquí, bloqueamos todo."""
         if self.usuario_actual.rol != "Administrador":
             self.pestanas.setEnabled(False)
-            QMessageBox.critical(self, "Acceso Denegado", "Solo el Administrador puede gestionar usuarios.")
+            
 
     # ==========================================
     # LÓGICA DE INTERFAZ Y BACKEND
