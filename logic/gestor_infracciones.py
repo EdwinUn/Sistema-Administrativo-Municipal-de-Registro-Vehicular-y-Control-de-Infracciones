@@ -46,13 +46,13 @@ class GestorInfracciones:
         cursor = conexion.cursor()
         
         try:
-            # 3. Regla de negocio: El vehículo debe existir [cite: 194, 257]
-            # Se asume que infraccion.vin contiene el VIN del vehículo responsable
-            cursor.execute("SELECT vin FROM vehiculos WHERE vin = ?", (infraccion.vin_infractor))
+            # 3. Regla de negocio: El vehículo debe existir
+            # CORRECCIÓN AQUÍ 1: Le agregamos la coma al final (infraccion.vin_infractor,) para que Python lo lea como tupla
+            cursor.execute("SELECT vin FROM vehiculos WHERE vin = ?", (infraccion.vin_infractor,))
             if not cursor.fetchone():
                 return False, "Error: El vehículo asociado (VIN) no existe en el sistema."
 
-            # 4. Regla de negocio: El agente debe existir y estar 'Activo' [cite: 165, 196, 260]
+            # 4. Regla de negocio: El agente debe existir y estar 'Activo'
             cursor.execute("SELECT estado FROM agentes WHERE id_agente = ?", (infraccion.id_agente,))
             resultado_agente = cursor.fetchone()
             
@@ -61,21 +61,20 @@ class GestorInfracciones:
             if resultado_agente[0] != "Activo":
                 return False, "Error: Solo los agentes con estado 'Activo' pueden registrar nuevas infracciones."
 
-            # 5. Generación automática del Folio Único [cite: 128, 263, 340]
-            # Genera un formato tipo: INF-20231025-A1B2C3D4
+            # 5. Generación automática del Folio Único
             fecha_actual = datetime.now().strftime('%Y%m%d')
             folio_generado = f"INF-{fecha_actual}-{str(uuid.uuid4())[:8].upper()}"
 
             # 6. Guardar en la base de datos
-            # El estado inicial siempre debe ser 'Pendiente'[cite: 149].
             estado_inicial = "Pendiente"
 
+            # CORRECCIÓN AQUÍ 2: Cambiamos 'vin' por 'vin_infractor' en la consulta SQL y en la variable de Python
             cursor.execute('''
-                INSERT INTO infracciones (folio, fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin, id_agente, licencia_conductor)
+                INSERT INTO infracciones (folio, fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin_infractor, id_agente, licencia_conductor)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (folio_generado, infraccion.fecha, infraccion.hora, infraccion.lugar, 
                 infraccion.tipo_infraccion, infraccion.motivo, infraccion.monto, 
-                estado_inicial, infraccion.vin, infraccion.id_agente, infraccion.licencia_conductor))
+                estado_inicial, infraccion.vin_infractor, infraccion.id_agente, infraccion.licencia_conductor))
             
             conexion.commit()
             return True, f"Infracción registrada exitosamente con el folio: {folio_generado}"

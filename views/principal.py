@@ -70,7 +70,7 @@ class VentanaPrincipal(QMainWindow):
 
         # Instanciamos los archivos que ya tienes creados
         self.vista_vehiculos = PanelVehiculos(self.usuario)
-        self.vista_multas = PanelMultas()
+        self.vista_multas = PanelMultas(self.usuario)
         self.vista_propietarios = PanelPropietarios(self.usuario)
         
         

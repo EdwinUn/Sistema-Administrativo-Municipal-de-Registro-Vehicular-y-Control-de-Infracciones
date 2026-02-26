@@ -6,9 +6,11 @@ import logic.catalogos as cat
 
 
 class PanelMultas(QWidget):
-    def __init__(self):
+    def __init__(self, usuario_actual):
         super().__init__()
+        self.usuario_actual = usuario_actual
         self.configurar_ui()
+        self.aplicar_permisos()
 
     def configurar_ui(self):
         """
@@ -30,15 +32,26 @@ class PanelMultas(QWidget):
         self.tab_registrar = QWidget()
         self.tab_gestionar = QWidget()
         
-        # Añadimos los lienzos al contenedor con sus respectivos títulos
-        self.pestanas.addTab(self.tab_registrar, "Registrar Infracción")
-        self.pestanas.addTab(self.tab_gestionar, "Cobro y Cancelación")
-        
-        layout_principal.addWidget(self.pestanas)
-
         # Llamamos a los métodos que construyen el interior de cada pestaña
         self.construir_tab_registrar()
         self.construir_tab_gestionar()
+
+        # --- APLICACIÓN DE ROLES (RBAC) ---
+        rol = self.usuario_actual.rol
+        
+        if rol == cat.ROLES_USUARIO[0]: # Administrador
+            self.pestanas.addTab(self.tab_registrar, "Registrar Infracción")
+            self.pestanas.addTab(self.tab_gestionar, "Cobro y Cancelación")
+            
+        elif rol == cat.ROLES_USUARIO[2]: # Agente de Tránsito
+            # Solo ve la pestaña de registro
+            self.pestanas.addTab(self.tab_registrar, "Registrar Infracción")
+            
+        elif rol == cat.ROLES_USUARIO[3]: # Supervisor
+            # Solo ve la pestaña de gestión, pero en modo "Consulta"
+            self.pestanas.addTab(self.tab_gestionar, "Consultar Infracción")
+
+        layout_principal.addWidget(self.pestanas)
 
     # ==========================================
     # PESTAÑA 1: REGISTRAR INFRACCIÓN
@@ -149,3 +162,15 @@ class PanelMultas(QWidget):
         
         layout.addStretch() # Empuja el botón al fondo de la pestaña
         layout.addWidget(self.btn_actualizar_estado, alignment=Qt.AlignRight)
+        
+    # ==========================================
+    # SEGURIDAD Y PERMISOS (RBAC)
+    # ==========================================
+    def aplicar_permisos(self):
+        """Bloquea elementos visuales según el rol del usuario."""
+        rol = self.usuario_actual.rol
+        
+        if rol == cat.ROLES_USUARIO[3]: # Supervisor
+            # El supervisor solo audita, no puede cobrar ni cancelar 
+            self.btn_actualizar_estado.setVisible(False)
+            self.combo_nuevo_estado.setEnabled(False)
