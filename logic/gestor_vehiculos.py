@@ -70,40 +70,41 @@ class GestorVehiculos:
             conexion.close()
 
     @staticmethod
-    def buscar_vehiculo_por_vin(vin: str) -> tuple[bool, str | dict]:
+    def buscar_vehiculo_universal(criterio: str) -> tuple[bool, str | dict]:
         """
-        Busca un vehículo por su VIN y retorna todos sus datos para mostrarlos en la interfaz.
+        Busca un vehículo ya sea por su VIN (17 caracteres) o por su Placa.
+        Retorna todos sus datos, incluyendo el VIN real.
         """
         try:
-            # --- AQUÍ USAMOS TU FUNCIÓN OFICIAL ---
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # Ahora traemos toda la fila
+            # Buscamos en ambas columnas al mismo tiempo usando OR
             cursor.execute('''
-                SELECT placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario 
+                SELECT vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario 
                 FROM vehiculos 
-                WHERE vin = ?
-            ''', (vin,))
+                WHERE vin = ? OR placa = ?
+            ''', (criterio, criterio))
             
             resultado = cursor.fetchone()
             
             if resultado:
-                # Empaquetamos todo el vehículo
+                # Empaquetamos todo el vehículo, ¡ahora incluyendo el VIN!
                 datos_vehiculo = {
-                    "placa": resultado[0],
-                    "marca": resultado[1],
-                    "modelo": resultado[2],
-                    "anio": resultado[3],
-                    "color": resultado[4],
-                    "clase": resultado[5],
-                    "estado_legal": resultado[6],
-                    "procedencia": resultado[7],
-                    "id_propietario": resultado[8]
+                    "vin": resultado[0],
+                    "placa": resultado[1],
+                    "marca": resultado[2],
+                    "modelo": resultado[3],
+                    "anio": resultado[4],
+                    "color": resultado[5],
+                    "clase": resultado[6],
+                    "estado_legal": resultado[7],
+                    "procedencia": resultado[8],
+                    "id_propietario": resultado[9]
                 }
                 return True, datos_vehiculo
             else:
-                return False, "No se encontró ningún vehículo registrado con ese VIN."
+                return False, "No se encontró ningún vehículo con ese VIN o Placa."
                 
         except Exception as e:
             return False, f"Error al buscar en la base de datos: {str(e)}"

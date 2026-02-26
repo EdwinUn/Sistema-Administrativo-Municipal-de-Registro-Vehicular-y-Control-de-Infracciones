@@ -25,7 +25,8 @@ class TabModificarVehiculo(QWidget):
         # ==========================================
         layout_busqueda = QHBoxLayout()
         self.input_buscar_vin = QLineEdit()
-        self.input_buscar_vin.setPlaceholderText("Ingrese el VIN a buscar...")
+        # Cambia el placeholder para que el operador sepa que puede usar la placa
+        self.input_buscar_vin.setPlaceholderText("Ingrese VIN o Placa a buscar...")
         
         btn_buscar = QPushButton("Buscar")
         btn_buscar.clicked.connect(self.procesar_busqueda_vehiculo)
@@ -156,16 +157,21 @@ class TabModificarVehiculo(QWidget):
     # MÉTODOS LÓGICOS (Búsqueda)
     # ==========================================
     def procesar_busqueda_vehiculo(self):
-        """Busca el vehículo en la BD y rellena el formulario de modificación."""
-        vin_buscado = self.input_buscar_vin.text().strip().upper()
+        """Busca el vehículo y rellena el formulario."""
+        criterio_buscado = self.input_buscar_vin.text().strip().upper()
         
-        if not vin_buscado:
-            QMessageBox.warning(self, "Atención", "Por favor, ingrese un VIN para buscar.")
+        if not criterio_buscado:
+            QMessageBox.warning(self, "Atención", "Por favor, ingrese un VIN o Placa para buscar.")
             return
             
-        exito, resultado = GestorVehiculos.buscar_vehiculo_por_vin(vin_buscado)
+        # Llamamos a la nueva función universal
+        exito, resultado = GestorVehiculos.buscar_vehiculo_universal(criterio_buscado)
         
         if exito:
+            # ¡EL TRUCO DE ORO! Si buscaron por placa, reemplazamos el texto de la caja 
+            # de búsqueda por el VIN real para que el resto del código no se rompa.
+            self.input_buscar_vin.setText(resultado["vin"]) 
+            
             self.mod_placa.setText(resultado["placa"])
             self.mod_marca.setText(resultado["marca"])
             self.mod_modelo.setText(resultado["modelo"])
@@ -175,6 +181,9 @@ class TabModificarVehiculo(QWidget):
             self.mod_id_propietario.setText(f"PRP-{id_prop:05d}")
             self.mod_color.setCurrentText(resultado["color"])
             self.mod_estado.setCurrentText(resultado["estado_legal"])
+            
+            # Activamos los trámites si los tenías bloqueados
+            # self.group_tramites.setEnabled(True) 
             
         else:
             self.limpiar_formulario_modificar()
