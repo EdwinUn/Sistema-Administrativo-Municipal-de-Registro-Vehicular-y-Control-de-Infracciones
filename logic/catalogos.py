@@ -106,16 +106,20 @@ MARCAS_MODELOS_VEHICULO = {
 COLORES_VEHICULO = [
     "Blanco",
     "Negro",
-    "Plata",
     "Gris",
+    "Plateado",
     "Rojo",
     "Azul",
     "Verde",
     "Amarillo",
     "Naranja",
-    "Café",
+    "Marrón",
     "Beige",
-    "Guinda",
+    "Vino",
+    "Dorado",
+    "Turquesa",
+    "Morado",
+    "Rosa",
     "Otro"
 ]
 
