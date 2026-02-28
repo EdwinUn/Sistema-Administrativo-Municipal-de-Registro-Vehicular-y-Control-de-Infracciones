@@ -9,9 +9,45 @@ from database.conexion import obtener_conexion
 def crear_tablas():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-
-
-# 1. Tabla Propietarios [cite: 398, 400]
+    
+    
+    # 1. Tabla Usuarios (Para el Login y seguridad)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_usuario TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            rol TEXT NOT NULL,
+            estado TEXT DEFAULT 'Activo',
+            debe_cambiar_password INTEGER DEFAULT 1,
+            
+            -- COLUMNAS DE AUDITORÍA
+            id_usuario_registro INTEGER,
+            id_usuario_actualizacion INTEGER,
+            
+            FOREIGN KEY (id_usuario_registro) REFERENCES usuarios (id_usuario),
+            FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
+        )
+    ''')
+    
+    # 2. Tabla Agentes de Tránsito
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS agentes (
+            id_agente INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_placa TEXT UNIQUE NOT NULL,
+            nombre_completo TEXT NOT NULL,
+            cargo TEXT,
+            estado TEXT DEFAULT 'Activo',
+            
+            -- COLUMNAS DE AUDITORÍA
+            id_usuario_registro INTEGER NOT NULL,
+            id_usuario_actualizacion INTEGER,
+            
+            FOREIGN KEY (id_usuario_registro) REFERENCES usuarios (id_usuario),
+            FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
+        )
+    ''')
+# 3. Tabla Propietarios [cite: 398, 400]
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS propietarios (
             id_propietario INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,11 +57,17 @@ def crear_tablas():
             telefono TEXT,
             correo_electronico TEXT,
             estado_licencia TEXT,
-            estado TEXT DEFAULT 'Activo'
+            estado TEXT DEFAULT 'Activo',
+            
+            -- COLUMNAS DE AUDITORÍA
+            id_usuario_registro INTEGER NOT NULL,
+            id_usuario_actualizacion INTEGER,
+            
+            FOREIGN KEY (id_usuario_registro) REFERENCES usuarios (id_usuario),
+            FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
         )
     ''')
-
-# 2. Tabla Vehículos
+# 4. Tabla Vehículos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS vehiculos (
             vin TEXT PRIMARY KEY,
@@ -38,22 +80,17 @@ def crear_tablas():
             estado_legal TEXT DEFAULT 'Activo',
             procedencia TEXT NOT NULL,
             id_propietario INTEGER NOT NULL,
-            FOREIGN KEY (id_propietario) REFERENCES propietarios (id_propietario)
+            
+            -- COLUMNAS DE AUDITORÍA
+            id_usuario_registro INTEGER NOT NULL,
+            id_usuario_actualizacion INTEGER,
+            
+            FOREIGN KEY (id_propietario) REFERENCES propietarios (id_propietario),
+            FOREIGN KEY (id_usuario_registro) REFERENCES usuarios (id_usuario),
+            FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
         )
     ''')
-
-# 3. Tabla Agentes de Tránsito
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS agentes (
-            id_agente INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero_placa TEXT UNIQUE NOT NULL,
-            nombre_completo TEXT NOT NULL,
-            cargo TEXT,
-            estado TEXT DEFAULT 'Activo'
-        )
-    ''')
-
-    # 4. Tabla Infracciones (Multas)
+    # 5. Tabla Infracciones (Multas)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS infracciones (
             folio TEXT PRIMARY KEY,
@@ -76,18 +113,6 @@ def crear_tablas():
             FOREIGN KEY (id_agente) REFERENCES agentes (id_agente),
             FOREIGN KEY (id_usuario_registro) REFERENCES usuarios (id_usuario),
             FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
-        )
-    ''')
-
-    # 5. Tabla Usuarios (Para el Login y seguridad)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre_usuario TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            rol TEXT NOT NULL,
-            estado TEXT DEFAULT 'Activo',
-            debe_cambiar_password INTEGER DEFAULT 1 
         )
     ''')
 
