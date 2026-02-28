@@ -63,11 +63,11 @@ class GestorInfracciones:
             estado_inicial = "Pendiente"
 
             cursor.execute('''
-                INSERT INTO infracciones (folio, fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin_infractor, id_agente, licencia_conductor)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO infracciones (folio, fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin_infractor, id_agente, licencia_conductor, id_usuario_registro)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (folio_generado, infraccion.fecha, infraccion.hora, infraccion.lugar, 
                 infraccion.tipo_infraccion, infraccion.motivo, infraccion.monto, 
-                estado_inicial, infraccion.vin_infractor, infraccion.id_agente, infraccion.licencia_conductor))
+                estado_inicial, infraccion.vin_infractor, infraccion.id_agente, infraccion.licencia_conductor, infraccion.id_usuario_registro))
             
             conexion.commit()
             return True, f"Infracción registrada exitosamente.\n\nEl Folio asignado es: {folio_generado}"
@@ -80,7 +80,7 @@ class GestorInfracciones:
             conexion.close()
             
     @staticmethod
-    def cambiar_estado_infraccion(folio, nuevo_estado):
+    def cambiar_estado_infraccion(folio, nuevo_estado, id_usuario):
         """
         Cambia el estado de una infracción asegurando que se respeten 
         las reglas de transición del negocio.
@@ -115,12 +115,11 @@ class GestorInfracciones:
                 return False, "Error: La infracción ya se encuentra 'Pagada' y su estado es definitivo."
 
             # 4. Ejecutar la actualización en la base de datos
-            # 🚨 CAMBIO: Actualizamos usando id_infraccion 🚨
             cursor.execute('''
                 UPDATE infracciones 
-                SET estado = ?
+                SET estado = ?, id_usuario_actualizacion = ?
                 WHERE folio = ?
-            ''', (nuevo_estado, folio))
+            ''', (nuevo_estado, id_usuario, folio))
 
             conexion.commit()
             return True, f"El estado de la infracción #{folio} se ha actualizado correctamente a '{nuevo_estado}'."

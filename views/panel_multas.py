@@ -278,7 +278,8 @@ class PanelMultas(QWidget):
         nueva_infraccion = Infraccion(
             vin_infractor=vin_real, id_agente=id_agente, fecha=fecha, hora=hora,
             lugar=lugar, tipo_infraccion=tipo_texto, motivo=motivo,
-            monto=monto, licencia_conductor=licencia
+            monto=monto, licencia_conductor=licencia,
+            id_usuario_registro=self.usuario.id_usuario
         )
 
         exito, msj = GestorInfracciones.registrar_infraccion(nueva_infraccion, tipo_captura)
@@ -334,7 +335,7 @@ class PanelMultas(QWidget):
             QMessageBox.warning(self, "Falta Folio", "Por favor ingrese el folio de la infracción.")
             return
             
-        exito, msj = GestorInfracciones.cambiar_estado_infraccion(folio, nuevo_estado)
+        exito, msj = GestorInfracciones.cambiar_estado_infraccion(folio, nuevo_estado, self.usuario_actual.id_usuario)
         
         if exito:
             QMessageBox.information(self, "Actualización Exitosa", msj)
