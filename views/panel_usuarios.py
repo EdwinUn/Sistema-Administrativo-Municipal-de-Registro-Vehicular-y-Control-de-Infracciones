@@ -104,6 +104,13 @@ class PanelUsuarios(QWidget):
         self.btn_actualizar.clicked.connect(self.procesar_actualizacion)
         self.btn_actualizar.setEnabled(False) # Se activa al seleccionar a alguien
         layout_edicion.addWidget(self.btn_actualizar)
+        
+        # ==========================================
+        # MARCA DE AGUA DE AUDITORÍA
+        # ==========================================
+        self.lbl_auditoria = QLabel("")
+        self.lbl_auditoria.setStyleSheet("color: #7f8c8d; font-size: 11px; font-style: italic; margin-top: 10px;")
+        layout.addWidget(self.lbl_auditoria, alignment=Qt.AlignRight)
 
         layout.addLayout(layout_edicion)
 
@@ -143,9 +150,18 @@ class PanelUsuarios(QWidget):
         if exito and datos:
             self.tabla_usuarios.setRowCount(len(datos))
             for fila_idx, usuario in enumerate(datos):
-                for col_idx, valor in enumerate(usuario):
-                    item = QTableWidgetItem(str(valor))
+                # usuario = (id, nombre, rol, estado, creador, modificador)
+                
+                for col_idx in range(4): # Solo dibujamos las primeras 4 columnas
+                    item = QTableWidgetItem(str(usuario[col_idx]))
                     item.setTextAlignment(Qt.AlignCenter)
+                    
+                    # Guardamos el creador y modificador de forma invisible en la columna 0 (ID)
+                    if col_idx == 0:
+                        creador = usuario[4] if usuario[4] else "Sistema"
+                        modificador = usuario[5] if usuario[5] else "Sin modificaciones"
+                        item.setData(Qt.UserRole, f"Registrado por: {creador} | Última modificación: {modificador}")
+                        
                     self.tabla_usuarios.setItem(fila_idx, col_idx, item)
 
     def seleccionar_usuario_tabla(self):
@@ -155,6 +171,10 @@ class PanelUsuarios(QWidget):
             id_usuario = self.tabla_usuarios.item(fila, 0).text()
             rol_actual = self.tabla_usuarios.item(fila, 2).text()
             estado_actual = self.tabla_usuarios.item(fila, 3).text()
+
+            # EXTRAEMOS LA AUDITORÍA OCULTA Y LA MOSTRAMOS
+            texto_auditoria = self.tabla_usuarios.item(fila, 0).data(Qt.UserRole)
+            self.lbl_auditoria.setText(texto_auditoria)
 
             self.lbl_id_edit.setText(f"ID seleccionado: {id_usuario}")
             self.combo_edit_rol.setCurrentText(rol_actual)
@@ -179,5 +199,6 @@ class PanelUsuarios(QWidget):
             self.cargar_lista_usuarios()
             self.btn_actualizar.setEnabled(False)
             self.lbl_id_edit.setText("ID seleccionado: -")
+            self.lbl_auditoria.clear()
         else:
             QMessageBox.critical(self, "Error", msj)

@@ -109,6 +109,10 @@ class TabModificarPropietario(QWidget):
         """Bloquea los elementos editables si el usuario es Agente o Supervisor."""
         rol = self.usuario_actual.rol
         
+        
+        if rol not in ["Administrador", "Supervisor"]:
+            self.lbl_auditoria.setVisible(False)
+        
         # Agente de Tránsito [2] o Supervisor [3]
         if rol in [cat.ROLES_USUARIO[2], cat.ROLES_USUARIO[3]]:
             self.btn_actualizar.setVisible(False)
@@ -146,9 +150,16 @@ class TabModificarPropietario(QWidget):
             self.mod_licencia.setCurrentText(resultado["estado_licencia"])
             self.mod_estado.setCurrentText(resultado["estado"])
             
+            # MOSTRAR AUDITORÍA
+            creador = resultado["creador"]
+            modificador = resultado["modificador"]
+            self.lbl_auditoria.setText(f"Registro original por: {creador} | Última modificación por: {modificador}")
+            self.lbl_auditoria.show()
+            
             QMessageBox.information(self, "Propietario Encontrado", "Datos cargados correctamente.")
         else:
             self.limpiar_formulario()
+            self.lbl_auditoria.hide()
             QMessageBox.critical(self, "No encontrado", "No existe un propietario con esa CURP.")
 
     def limpiar_formulario(self):
@@ -162,6 +173,9 @@ class TabModificarPropietario(QWidget):
         
         self.mod_licencia.setCurrentIndex(-1)
         self.mod_estado.setCurrentIndex(-1)
+        
+        self.lbl_auditoria.clear()
+        self.lbl_auditoria.hide()
 
     def procesar_actualizacion(self):
         if not self.mod_curp.text():

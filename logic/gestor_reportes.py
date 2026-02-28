@@ -112,3 +112,75 @@ class GestorReportes:
             ORDER BY i.folio DESC
         '''
         return GestorReportes.ejecutar_consulta(query)
+    
+    # 8. Auditoría Masiva de Vehículos
+    @staticmethod
+    def reporte_auditoria_vehiculos():
+        query = '''
+            SELECT 
+                v.placa as Placa,
+                v.vin as VIN,
+                v.estado_legal as Estado_Legal,
+                u1.nombre_usuario as Creado_Por,
+                IFNULL(u2.nombre_usuario, 'Sin modificaciones') as Modificado_Por
+            FROM vehiculos v
+            LEFT JOIN usuarios u1 ON v.id_usuario_registro = u1.id_usuario
+            LEFT JOIN usuarios u2 ON v.id_usuario_actualizacion = u2.id_usuario
+            ORDER BY v.vin DESC
+        '''
+        return GestorReportes.ejecutar_consulta(query)
+
+    # 9. Auditoría Masiva de Propietarios
+    @staticmethod
+    def reporte_auditoria_propietarios():
+        query = '''
+            SELECT 
+                p.curp as CURP,
+                p.nombre_completo as Nombre_Propietario,
+                p.estado_licencia as Estado_Licencia,
+                u1.nombre_usuario as Creado_Por,
+                IFNULL(u2.nombre_usuario, 'Sin modificaciones') as Modificado_Por
+            FROM propietarios p
+            LEFT JOIN usuarios u1 ON p.id_usuario_registro = u1.id_usuario
+            LEFT JOIN usuarios u2 ON p.id_usuario_actualizacion = u2.id_usuario
+            ORDER BY p.id_propietario DESC
+        '''
+        return GestorReportes.ejecutar_consulta(query)
+
+    # 10. Auditoría Masiva de Usuarios
+    @staticmethod
+    def reporte_auditoria_usuarios():
+        query = '''
+            SELECT 
+                u.nombre_usuario as Usuario,
+                u.rol as Rol_Asignado,
+                u.estado as Estado_Cuenta,
+                IFNULL(u1.nombre_usuario, 'Sistema') as Creado_Por,
+                IFNULL(u2.nombre_usuario, 'Sin modificaciones') as Modificado_Por
+            FROM usuarios u
+            LEFT JOIN usuarios u1 ON u.id_usuario_registro = u1.id_usuario
+            LEFT JOIN usuarios u2 ON u.id_usuario_actualizacion = u2.id_usuario
+            ORDER BY u.id_usuario DESC
+        '''
+        return GestorReportes.ejecutar_consulta(query)
+    
+    # 11. Bitácora Completa de Movimientos (Caja Negra)
+    @staticmethod
+    def reporte_bitacora_completa():
+        """
+        Extrae el historial inmutable generado por los Triggers de SQLite.
+        Muestra cada acción (Creación/Actualización) con su fecha, hora y autor.
+        """
+        query = '''
+            SELECT 
+                b.id_evento as ID_Evento,
+                b.fecha_hora as Fecha_Hora,
+                UPPER(b.tabla_afectada) as Modulo_Afectado,
+                b.id_registro_afectado as Registro_Afectado,
+                b.tipo_accion as Accion_Realizada,
+                IFNULL(u.nombre_usuario, 'Sistema/Desconocido') as Usuario_Responsable
+            FROM bitacora_auditoria b
+            LEFT JOIN usuarios u ON b.id_usuario = u.id_usuario
+            ORDER BY b.fecha_hora DESC
+        '''
+        return GestorReportes.ejecutar_consulta(query)

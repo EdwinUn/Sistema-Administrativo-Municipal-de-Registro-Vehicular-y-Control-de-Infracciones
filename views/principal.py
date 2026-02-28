@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
-QPushButton, QStackedWidget, QLabel, QFrame, QGridLayout, QLineEdit)
+QPushButton, QStackedWidget, QLabel, QFrame, QGridLayout, QLineEdit, QMessageBox)
 from PySide6.QtCore import Qt
 
 # Importación de paneles de vistas
@@ -11,6 +11,7 @@ from views.panel_usuarios import PanelUsuarios
 
 # Importación del backend para el Dashboard
 from logic.gestor_vehiculos import GestorVehiculos
+import logic.catalogos as cat
 
 class VentanaPrincipal(QMainWindow):
     def __init__(self, usuario_actual):
@@ -58,6 +59,20 @@ class VentanaPrincipal(QMainWindow):
         self.btn_reportes = self.crear_boton_menu("Reportes")
         self.btn_usuarios = self.crear_boton_menu("Gestión Usuarios")
 
+        self.btn_cerrar_sesion = self.crear_boton_menu("Cerrar Sesión")
+        # Le damos un estilo rojo peligro para diferenciarlo
+        self.btn_cerrar_sesion.setStyleSheet("""
+            QPushButton {
+                background-color: #c0392b; 
+                border: none;
+                text-align: left;
+                padding-left: 15px;
+            }
+            QPushButton:hover {
+                background-color: #e74c3c;
+            }
+        """)
+        
         layout_menu.addWidget(self.btn_inicio)
         layout_menu.addWidget(self.btn_vehiculos)
         layout_menu.addWidget(self.btn_propietarios)
@@ -65,6 +80,9 @@ class VentanaPrincipal(QMainWindow):
         layout_menu.addWidget(self.btn_reportes)
         layout_menu.addWidget(self.btn_usuarios)
 
+        layout_menu.addStretch() 
+        layout_menu.addWidget(self.btn_cerrar_sesion)
+        
         # ==========================
         # 2. ÁREA DE CONTENIDO (QStackedWidget)
         # ==========================
@@ -95,6 +113,7 @@ class VentanaPrincipal(QMainWindow):
         self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(4))
         self.btn_usuarios.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(5))
 
+        self.btn_cerrar_sesion.clicked.connect(self.ejecutar_cierre_sesion)
         # Ensamblar el layout principal
         layout_principal.addWidget(self.menu_lateral)
         layout_principal.addWidget(self.stacked_widget)
@@ -295,22 +314,50 @@ class VentanaPrincipal(QMainWindow):
     # PERMISOS
     # ==========================
     def aplicar_permisos_rol(self):
-        """Oculta módulos en el menú dependiendo del rol del usuario autenticado."""
+        """Oculta módulos en el menú dependiendo del rol del usuario autenticado usando catálogos."""
         rol = self.usuario.rol
 
-        if rol == "Administrador":
-            pass 
+        # [0] -> "Administrador"
+        if rol == cat.ROLES_USUARIO[0]:
+            pass # El administrador ve todos los botones
         
-        elif rol == "Operador Administrativo":
+        # [1] -> "Operador Administrativo"
+        elif rol == cat.ROLES_USUARIO[1]:
             self.btn_infracciones.hide()
             self.btn_usuarios.hide()
             
-        elif rol == "Agente de Tránsito":
+        # [2] -> "Agente de Tránsito"
+        elif rol == cat.ROLES_USUARIO[2]:
             self.btn_propietarios.hide()
             self.btn_reportes.hide()
             self.btn_usuarios.hide()
             
-        elif rol == "Supervisor":
+        # [3] -> "Supervisor"
+        elif rol == cat.ROLES_USUARIO[3]:
             self.btn_vehiculos.hide()
             self.btn_propietarios.hide()
             self.btn_usuarios.hide()
+            
+    def ejecutar_cierre_sesion(self):
+        """Muestra un diálogo de confirmación antes de cerrar la sesión."""
+        
+        # 1. Crear la ventana emergente de pregunta
+        respuesta = QMessageBox.question(
+            self, 
+            "Confirmar Cierre de Sesión", 
+            "¿Está seguro de que desea salir de su cuenta?",
+            QMessageBox.Yes | QMessageBox.No, # Botones a mostrar
+            QMessageBox.No # Botón seleccionado por defecto (para evitar enter accidental)
+        )
+        
+        # 2. Evaluar qué botón presionó el usuario
+        if respuesta == QMessageBox.Yes:
+            # IMPORTACIÓN LOCAL: Solo se ejecuta si el usuario dice "Sí"
+            from views.login import VentanaLogin 
+            
+            # Instanciamos la ventana de Login de nuevo
+            self.ventana_login = VentanaLogin()
+            self.ventana_login.show()
+            
+            # Destruimos la ventana principal actual
+            self.close()

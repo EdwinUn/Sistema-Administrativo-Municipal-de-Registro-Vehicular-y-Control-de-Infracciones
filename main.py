@@ -13,7 +13,7 @@ from views.login import VentanaLogin
 def verificar_entorno():
     """Verifica que la base de datos exista. Si no, la crea."""
     try:
-        # Esto asegura que el archivo .db se cree con todas las tablas [cite: 497-498]
+        # Esto asegura que el archivo .db se cree con todas las tablas
         crear_tablas()
         return True
     except Exception as e:

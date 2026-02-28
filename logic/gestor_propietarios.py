@@ -139,10 +139,15 @@ class GestorPropietarios:
         try:
             # 2. Buscamos en la base de datos
             cursor.execute('''
-                SELECT id_propietario, nombre_completo, curp, direccion, 
-                telefono, correo_electronico, estado_licencia, estado
-                FROM propietarios 
-                WHERE curp = ?
+                SELECT 
+                    p.id_propietario, p.nombre_completo, p.curp, p.direccion, 
+                    p.telefono, p.correo_electronico, p.estado_licencia, p.estado,
+                    u1.nombre_usuario AS creador,
+                    u2.nombre_usuario AS modificador
+                FROM propietarios p
+                LEFT JOIN usuarios u1 ON p.id_usuario_registro = u1.id_usuario
+                LEFT JOIN usuarios u2 ON p.id_usuario_actualizacion = u2.id_usuario
+                WHERE p.curp = ?
             ''', (curp,))
             
             fila = cursor.fetchone()
@@ -155,9 +160,12 @@ class GestorPropietarios:
                     "curp": fila[2],
                     "direccion": fila[3],
                     "telefono": fila[4],
-                    "correo": fila[5], # Lo nombramos 'correo' para que coincida con la vista
+                    "correo": fila[5], 
                     "estado_licencia": fila[6],
-                    "estado": fila[7]
+                    "estado": fila[7],
+                    # Agregamos los datos de auditoría con valores por defecto si vienen vacíos
+                    "creador": fila[8] if fila[8] else "Sistema/Desconocido",
+                    "modificador": fila[9] if fila[9] else "Sin modificaciones"
                 }
                 return True, resultado
             else:

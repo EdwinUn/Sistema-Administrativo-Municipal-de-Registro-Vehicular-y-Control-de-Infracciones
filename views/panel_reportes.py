@@ -43,8 +43,13 @@ class PanelReportes(QWidget):
             self.combo_reportes.addItem("3. Infracciones emitidas por agente", 3)
             self.combo_reportes.addItem("4. Vehículos por estado legal", 4)
             self.combo_reportes.addItem("5. Propietarios con múltiples vehículos", 5)
+            self.combo_reportes.addItem("--- Reportes de Auditoría Interna ---", None) # Separador visual
             self.combo_reportes.addItem("6. Resumen general de infracciones", 6)
             self.combo_reportes.addItem("7. Auditoría de Infracciones", 7)
+            self.combo_reportes.addItem("8. Auditoría de Movimientos en Vehículos", 8)
+            self.combo_reportes.addItem("9. Auditoría de Trámites de Propietarios", 9)
+            self.combo_reportes.addItem("10. Auditoría de Privilegios de Usuarios", 10)
+            self.combo_reportes.addItem("11. Historial Completo de Movimientos (Bitácora)", 11)
             
         elif rol == "Operador Administrativo":
             # Solo reportes básicos enfocados a padrón vehicular
@@ -202,7 +207,14 @@ class PanelReportes(QWidget):
             exito, encabezados, filas = GestorReportes.reporte_resumen_infracciones()
         elif reporte_id == 7:
             exito, encabezados, filas = GestorReportes.reporte_auditoria_infracciones()
-
+        elif reporte_id == 8:
+            exito, encabezados, filas = GestorReportes.reporte_auditoria_vehiculos()
+        elif reporte_id == 9:
+            exito, encabezados, filas = GestorReportes.reporte_auditoria_propietarios()
+        elif reporte_id == 10:
+            exito, encabezados, filas = GestorReportes.reporte_auditoria_usuarios()
+        elif reporte_id == 11:
+            exito, encabezados, filas = GestorReportes.reporte_bitacora_completa()
         # 3. Dibujamos los resultados en la interfaz
         if exito:
             self.btn_exportar.setVisible(True)

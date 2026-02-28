@@ -15,9 +15,14 @@ class GestorUsuarios:
         
         try:
             cursor.execute('''
-                SELECT id_usuario, nombre_usuario, rol, estado 
-                FROM usuarios 
-                ORDER BY id_usuario ASC
+                SELECT 
+                    u.id_usuario, u.nombre_usuario, u.rol, u.estado,
+                    u1.nombre_usuario AS creador,
+                    u2.nombre_usuario AS modificador
+                FROM usuarios u
+                LEFT JOIN usuarios u1 ON u.id_usuario_registro = u1.id_usuario
+                LEFT JOIN usuarios u2 ON u.id_usuario_actualizacion = u2.id_usuario
+                ORDER BY u.id_usuario ASC
             ''')
             usuarios = cursor.fetchall()
             return True, usuarios

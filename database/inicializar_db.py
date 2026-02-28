@@ -115,6 +115,107 @@ def crear_tablas():
             FOREIGN KEY (id_usuario_actualizacion) REFERENCES usuarios (id_usuario)
         )
     ''')
+# ==========================================
+    # 6. TABLA DE BITÁCORA DE AUDITORÍA (CAJA NEGRA)
+    # ==========================================
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS bitacora_auditoria (
+            id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_hora DATETIME DEFAULT (datetime('now', 'localtime')),
+            tabla_afectada TEXT NOT NULL,
+            id_registro_afectado TEXT NOT NULL,
+            tipo_accion TEXT NOT NULL, 
+            id_usuario INTEGER,
+            
+            FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        )
+    ''')
+
+    # ==========================================
+    # 7. TRIGGERS (DISPARADORES AUTOMÁTICOS)
+    # ==========================================
+
+    # --- TRIGGERS PARA VEHÍCULOS ---
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_vehiculos_insert 
+        AFTER INSERT ON vehiculos
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('vehiculos', NEW.vin, 'CREACIÓN', NEW.id_usuario_registro);
+        END;
+    ''')
+
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_vehiculos_update 
+        AFTER UPDATE ON vehiculos
+        -- Solo registra si realmente hubo un cambio de usuario (evita falsos positivos)
+        WHEN NEW.id_usuario_actualizacion IS NOT NULL 
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('vehiculos', NEW.vin, 'ACTUALIZACIÓN', NEW.id_usuario_actualizacion);
+        END;
+    ''')
+
+    # --- TRIGGERS PARA PROPIETARIOS ---
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_propietarios_insert 
+        AFTER INSERT ON propietarios
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('propietarios', NEW.curp, 'CREACIÓN', NEW.id_usuario_registro);
+        END;
+    ''')
+
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_propietarios_update 
+        AFTER UPDATE ON propietarios
+        WHEN NEW.id_usuario_actualizacion IS NOT NULL
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('propietarios', NEW.curp, 'ACTUALIZACIÓN', NEW.id_usuario_actualizacion);
+        END;
+    ''')
+
+    # --- TRIGGERS PARA INFRACCIONES ---
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_infracciones_insert 
+        AFTER INSERT ON infracciones
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('infracciones', NEW.folio, 'CREACIÓN', NEW.id_usuario_registro);
+        END;
+    ''')
+
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_infracciones_update 
+        AFTER UPDATE ON infracciones
+        WHEN NEW.id_usuario_actualizacion IS NOT NULL
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('infracciones', NEW.folio, 'ACTUALIZACIÓN', NEW.id_usuario_actualizacion);
+        END;
+    ''')
+
+    # --- TRIGGERS PARA USUARIOS ---
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_usuarios_insert 
+        AFTER INSERT ON usuarios
+        WHEN NEW.id_usuario_registro IS NOT NULL
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('usuarios', NEW.nombre_usuario, 'CREACIÓN', NEW.id_usuario_registro);
+        END;
+    ''')
+
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS trg_usuarios_update 
+        AFTER UPDATE ON usuarios
+        WHEN NEW.id_usuario_actualizacion IS NOT NULL
+        BEGIN
+            INSERT INTO bitacora_auditoria (tabla_afectada, id_registro_afectado, tipo_accion, id_usuario)
+            VALUES ('usuarios', NEW.nombre_usuario, 'ACTUALIZACIÓN', NEW.id_usuario_actualizacion);
+        END;
+    ''')
 
     conexion.commit()
     conexion.close()
