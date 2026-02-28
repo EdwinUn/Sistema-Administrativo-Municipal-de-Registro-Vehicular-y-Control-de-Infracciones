@@ -95,3 +95,20 @@ class GestorReportes:
             GROUP BY estado
         '''
         return GestorReportes.ejecutar_consulta(query)
+    
+    @staticmethod
+    def reporte_auditoria_infracciones():
+        # Hacemos un JOIN doble con la tabla usuarios para obtener los nombres reales
+        query = '''
+            SELECT 
+                i.folio as Folio, 
+                i.estado as Estado_Actual,
+                u1.nombre_usuario as Creado_Por,
+                IFNULL(u2.nombre_usuario, 'Sin modificaciones') as Modificado_Por,
+                i.monto as Monto
+            FROM infracciones i
+            LEFT JOIN usuarios u1 ON i.id_usuario_registro = u1.id_usuario
+            LEFT JOIN usuarios u2 ON i.id_usuario_actualizacion = u2.id_usuario
+            ORDER BY i.folio DESC
+        '''
+        return GestorReportes.ejecutar_consulta(query)

@@ -105,6 +105,13 @@ class TabModificarVehiculo(QWidget):
         layout.addLayout(formulario)
 
         # ==========================================
+        # MARCA DE AGUA DE AUDITORÍA
+        # ==========================================
+        self.lbl_auditoria = QLabel("")
+        self.lbl_auditoria.setStyleSheet("color: #7f8c8d; font-size: 11px; font-style: italic;")
+        layout.addWidget(self.lbl_auditoria, alignment=Qt.AlignLeft)
+        
+        # ==========================================
         # 3. BOTÓN DE ACTUALIZACIÓN
         # ==========================================
         self.btn_actualizar = QPushButton("Actualizar Datos")
@@ -173,10 +180,7 @@ class TabModificarVehiculo(QWidget):
         exito, resultado = GestorVehiculos.buscar_vehiculo_universal(criterio_buscado)
         
         if exito:
-            # ¡EL TRUCO DE ORO! Si buscaron por placa, reemplazamos el texto de la caja 
-            # de búsqueda por el VIN real para que el resto del código no se rompa.
             self.input_buscar_vin.setText(resultado["vin"]) 
-            
             self.mod_placa.setText(resultado["placa"])
             self.mod_marca.setText(resultado["marca"])
             self.mod_modelo.setText(resultado["modelo"])
@@ -187,11 +191,16 @@ class TabModificarVehiculo(QWidget):
             self.mod_color.setCurrentText(resultado["color"])
             self.mod_estado.setCurrentText(resultado["estado_legal"])
             
-            # Activamos los trámites si los tenías bloqueados
-            # self.group_tramites.setEnabled(True) 
+            # MOSTRAR AUDITORÍA
+            creador = resultado["creador"]
+            modificador = resultado["modificador"]
+            self.lbl_auditoria.setText(f"Registro original por: {creador} | Última modificación por: {modificador}")
+            self.lbl_auditoria.show()
+            
             
         else:
             self.limpiar_formulario_modificar()
+            self.lbl_auditoria.hide()
             QMessageBox.critical(self, "No encontrado", resultado)
 
     def limpiar_formulario_modificar(self):
@@ -205,6 +214,9 @@ class TabModificarVehiculo(QWidget):
         
         self.mod_color.setCurrentIndex(-1)
         self.mod_estado.setCurrentIndex(-1)
+        
+        self.lbl_auditoria.clear()
+        self.lbl_auditoria.hide()
         
     def procesar_actualizacion(self):
         """Captura los datos permitidos y los envía al backend para actualizar."""
@@ -245,6 +257,7 @@ class TabModificarVehiculo(QWidget):
             self.btn_actualizar.setVisible(False)
             self.btn_cambiar_propietario.setVisible(False)
             self.btn_cambiar_placa.setVisible(False)
+            self.lbl_auditoria.setVisible(False)
             
             # 2. Bloqueamos los menús desplegables
             self.mod_color.setEnabled(False)

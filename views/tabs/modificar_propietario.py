@@ -84,6 +84,13 @@ class TabModificarPropietario(QWidget):
         formulario.addRow("Estado en Sistema:", self.mod_estado)
         
         layout.addLayout(formulario)
+        
+        # ==========================================
+        # MARCA DE AGUA DE AUDITORÍA
+        # ==========================================
+        self.lbl_auditoria = QLabel("")
+        self.lbl_auditoria.setStyleSheet("color: #7f8c8d; font-size: 11px; font-style: italic;")
+        layout.addWidget(self.lbl_auditoria, alignment=Qt.AlignLeft)
 
         # ==========================================
         # 3. BOTÓN DE ACTUALIZACIÓN

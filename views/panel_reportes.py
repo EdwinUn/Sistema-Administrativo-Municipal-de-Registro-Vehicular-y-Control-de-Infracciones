@@ -44,6 +44,7 @@ class PanelReportes(QWidget):
             self.combo_reportes.addItem("4. Vehículos por estado legal", 4)
             self.combo_reportes.addItem("5. Propietarios con múltiples vehículos", 5)
             self.combo_reportes.addItem("6. Resumen general de infracciones", 6)
+            self.combo_reportes.addItem("7. Auditoría de Infracciones", 7)
             
         elif rol == "Operador Administrativo":
             # Solo reportes básicos enfocados a padrón vehicular
@@ -199,6 +200,8 @@ class PanelReportes(QWidget):
             exito, encabezados, filas = GestorReportes.reporte_propietarios_multiples_vehiculos()
         elif reporte_id == 6:
             exito, encabezados, filas = GestorReportes.reporte_resumen_infracciones()
+        elif reporte_id == 7:
+            exito, encabezados, filas = GestorReportes.reporte_auditoria_infracciones()
 
         # 3. Dibujamos los resultados en la interfaz
         if exito:

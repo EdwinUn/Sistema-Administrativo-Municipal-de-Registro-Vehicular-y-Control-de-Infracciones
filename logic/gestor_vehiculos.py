@@ -79,17 +79,22 @@ class GestorVehiculos:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # Buscamos en ambas columnas al mismo tiempo usando OR
+            # Hacemos JOIN doble para obtener los nombres de usuario
             cursor.execute('''
-                SELECT vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario 
-                FROM vehiculos 
-                WHERE vin = ? OR placa = ?
+                SELECT 
+                    v.vin, v.placa, v.marca, v.modelo, v.anio, 
+                    v.color, v.clase, v.estado_legal, v.procedencia, v.id_propietario,
+                    u1.nombre_usuario AS creador,
+                    u2.nombre_usuario AS modificador
+                FROM vehiculos v
+                LEFT JOIN usuarios u1 ON v.id_usuario_registro = u1.id_usuario
+                LEFT JOIN usuarios u2 ON v.id_usuario_actualizacion = u2.id_usuario
+                WHERE v.vin = ? OR v.placa = ?
             ''', (criterio, criterio))
             
             resultado = cursor.fetchone()
             
             if resultado:
-                # Empaquetamos todo el vehículo, ¡ahora incluyendo el VIN!
                 datos_vehiculo = {
                     "vin": resultado[0],
                     "placa": resultado[1],
@@ -100,7 +105,9 @@ class GestorVehiculos:
                     "clase": resultado[6],
                     "estado_legal": resultado[7],
                     "procedencia": resultado[8],
-                    "id_propietario": resultado[9]
+                    "id_propietario": resultado[9],
+                    "creador": resultado[10] if resultado[10] else "Sistema/Desconocido",
+                    "modificador": resultado[11] if resultado[11] else "Sin modificaciones"
                 }
                 return True, datos_vehiculo
             else:
