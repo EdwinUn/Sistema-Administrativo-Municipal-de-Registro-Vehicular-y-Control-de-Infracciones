@@ -129,10 +129,13 @@ class TabModificarVehiculo(QWidget):
         )
         
         if ok and nueva_placa.strip():
-            exito, msj = GestorVehiculos.realizar_reemplacamiento(vin, nueva_placa.strip().upper())
+            exito, msj = GestorVehiculos.realizar_reemplacamiento(
+                vin, nueva_placa.strip().upper(), self.usuario_actual.id_usuario # <-- AÑADIDO
+            )
             if exito:
                 QMessageBox.information(self, "Éxito", msj)
-                self.mod_placa.setText(nueva_placa.strip().upper()) # Actualizamos la vista
+                self.mod_placa.setText(nueva_placa.strip().upper())
+                # Actualizamos la vista
             else:
                 QMessageBox.warning(self, "Trámite Denegado", msj)
 
@@ -146,7 +149,9 @@ class TabModificarVehiculo(QWidget):
         )
         
         if ok:
-            exito, msj = GestorVehiculos.transferir_propiedad(vin, id_nuevo)
+            exito, msj = GestorVehiculos.transferir_propiedad(
+                vin, id_nuevo, self.usuario_actual.id_usuario # <-- AÑADIDO
+            )
             if exito:
                 QMessageBox.information(self, "Éxito", msj)
                 # Actualizamos el campo visual con el formato PRP-00000
@@ -216,8 +221,9 @@ class TabModificarVehiculo(QWidget):
         nuevo_estado = self.mod_estado.currentText()
         
         # 3. Mandamos al Gestor a hacer el UPDATE
-        exito, mensaje = GestorVehiculos.actualizar_vehiculo(vin_objetivo, nuevo_color, nuevo_estado)
-        
+        exito, mensaje = GestorVehiculos.actualizar_vehiculo(
+            vin_objetivo, nuevo_color, nuevo_estado, self.usuario_actual.id_usuario # <-- AÑADIDO
+        )
         # 4. Retroalimentación visual
         if exito:
             QMessageBox.information(self, "Actualización Exitosa", mensaje)

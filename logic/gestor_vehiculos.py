@@ -47,10 +47,10 @@ class GestorVehiculos:
                 return False, "Error: El ID del propietario no existe en el sistema."
 
             cursor.execute('''
-                INSERT INTO vehiculos (vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario)
+                INSERT INTO vehiculos (vin, placa, marca, modelo, anio, color, clase, estado_legal, procedencia, id_propietario, id_usuario_registro)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (vehiculo.vin, vehiculo.placa, vehiculo.marca, vehiculo.modelo, vehiculo.anio, 
-                vehiculo.color, vehiculo.clase, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario))
+                vehiculo.color, vehiculo.clase, vehiculo.estado_legal, vehiculo.procedencia, vehiculo.id_propietario, vehiculo.id_usuario_registro))
             
             conexion.commit()
             return True, "Vehículo registrado correctamente."
@@ -114,7 +114,7 @@ class GestorVehiculos:
 
 
     @staticmethod
-    def actualizar_vehiculo(vin: str, color: str, estado_legal: str) -> tuple[bool, str]:
+    def actualizar_vehiculo(vin: str, color: str, estado_legal: str, id_usuario: int) -> tuple[bool, str]:
         """
         Actualiza únicamente los campos permitidos (color y estado_legal) de un vehículo existente.
         """
@@ -128,9 +128,9 @@ class GestorVehiculos:
             # Ejecutamos el comando UPDATE de SQL
             cursor.execute('''
                 UPDATE vehiculos 
-                SET color = ?, estado_legal = ? 
+                SET color = ?, estado_legal = ?, id_usuario_actualizacion = ?
                 WHERE vin = ?
-            ''', (color, estado_legal, vin))
+            ''', (color, estado_legal, id_usuario, vin))
             
             # Verificamos si realmente se modificó alguna fila
             if cursor.rowcount == 0:
@@ -147,7 +147,7 @@ class GestorVehiculos:
     
     
     @staticmethod
-    def modificar_vehiculo(vin, nueva_placa, nuevo_color, nuevo_estado_legal):
+    def modificar_vehiculo(vin, nueva_placa, nuevo_color, nuevo_estado_legal, id_usuario):
         """
         Modifica los datos permitidos de un vehículo (Placa, Color, Estado legal).
         Bloquea el trámite si hay infracciones pendientes.
@@ -186,9 +186,9 @@ class GestorVehiculos:
             # 4. Ejecutar la actualización solo en los campos permitidos
             cursor.execute('''
                 UPDATE vehiculos 
-                SET placa = ?, color = ?, estado_legal = ?
+                SET placa = ?, color = ?, estado_legal = ?, id_usuario_actualizacion = ?
                 WHERE vin = ?
-            ''', (nueva_placa, nuevo_color, nuevo_estado_legal, vin))
+            ''', (nueva_placa, nuevo_color, nuevo_estado_legal, id_usuario, vin))
 
             if cursor.rowcount == 0:
                 return False, "Error: No se encontró el vehículo con el VIN especificado."
@@ -206,7 +206,7 @@ class GestorVehiculos:
             
     @staticmethod
     def tiene_multas_pendientes(vin):
-        """Verifica si el vehículo tiene deudas. Regla de negocio [4.2.vii]"""
+        """Verifica si el vehículo tiene deudas"""
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         cursor.execute("SELECT COUNT(*) FROM infracciones WHERE vin_infractor = ? AND estado = 'Pendiente'", (vin,))
@@ -215,7 +215,7 @@ class GestorVehiculos:
         return resultado > 0
 
     @staticmethod
-    def realizar_reemplacamiento(vin, nueva_placa):
+    def realizar_reemplacamiento(vin, nueva_placa, id_usuario):
         """Actualiza la placa validando unicidad y multas."""
         if GestorVehiculos.tiene_multas_pendientes(vin):
             return False, "Trámite Bloqueado: El vehículo tiene infracciones pendientes de pago."
@@ -223,7 +223,7 @@ class GestorVehiculos:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         try:
-            cursor.execute("UPDATE vehiculos SET placa = ? WHERE vin = ?", (nueva_placa, vin))
+            cursor.execute("UPDATE vehiculos SET placa = ?, id_usuario_actualizacion = ? WHERE vin = ?", (nueva_placa, id_usuario, vin))
             conexion.commit()
             return True, "Reemplacamiento exitoso."
         except sqlite3.IntegrityError:
@@ -232,7 +232,7 @@ class GestorVehiculos:
             conexion.close()
 
     @staticmethod
-    def transferir_propiedad(vin, id_nuevo_propietario):
+    def transferir_propiedad(vin, id_nuevo_propietario, id_usuario):
         """Cambia el dueño validando existencia, estado y multas."""
         if GestorVehiculos.tiene_multas_pendientes(vin):
             return False, "Trámite Bloqueado: No se puede transferir un vehículo con multas pendientes."
@@ -247,7 +247,7 @@ class GestorVehiculos:
             if not propietario or propietario[0] != "Activo":
                 return False, "Error: El propietario destino no existe o está inactivo."
 
-            cursor.execute("UPDATE vehiculos SET id_propietario = ? WHERE vin = ?", (id_nuevo_propietario, vin))
+            cursor.execute("UPDATE vehiculos SET id_propietario = ?, id_usuario_actualizacion = ? WHERE vin = ?", (id_nuevo_propietario, id_usuario, vin))
             conexion.commit()
             return True, "Transferencia de propiedad realizada correctamente."
         finally:

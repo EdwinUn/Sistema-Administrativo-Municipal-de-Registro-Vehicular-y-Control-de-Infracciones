@@ -27,7 +27,7 @@ class GestorUsuarios:
             conexion.close()
 
     @staticmethod
-    def actualizar_usuario(id_usuario, nuevo_rol, nuevo_estado):
+    def actualizar_usuario(id_usuario, nuevo_rol, nuevo_estado, id_usuario_modificador):
         """
         Permite al administrador cambiar el rol o el estado (Activo/Inactivo) de un empleado.
         """
@@ -40,9 +40,9 @@ class GestorUsuarios:
         try:
             cursor.execute('''
                 UPDATE usuarios 
-                SET rol = ?, estado = ?
+                SET rol = ?, estado = ?, id_usuario_actualizacion = ?
                 WHERE id_usuario = ?
-            ''', (nuevo_rol, nuevo_estado, id_usuario))
+            ''', (nuevo_rol, nuevo_estado, id_usuario_modificador, id_usuario))
             
             conexion.commit()
             return True, "Los permisos del usuario han sido actualizados exitosamente."

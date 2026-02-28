@@ -28,7 +28,7 @@ class PanelVehiculos(QWidget):
         self.pestanas = QTabWidget()
         
         # Instanciamos nuestras clases independientes
-        self.tab_registrar = TabRegistrarVehiculo()
+        self.tab_registrar = TabRegistrarVehiculo(self.usuario_actual)
         self.tab_modificar = TabModificarVehiculo(self.usuario_actual)
 
         # --- APLICACIÓN DE ROLES ---

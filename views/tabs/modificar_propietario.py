@@ -178,7 +178,8 @@ class TabModificarPropietario(QWidget):
             return
 
         exito, mensaje = GestorPropietarios.modificar_propietario(
-            id_objetivo, direccion, telefono, correo, licencia, estado
+            id_objetivo, direccion, telefono, correo, licencia, estado,
+            self.usuario_actual.id_usuario
         )
         
         # Retroalimentación visual según el resultado

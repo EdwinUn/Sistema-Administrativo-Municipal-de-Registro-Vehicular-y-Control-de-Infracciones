@@ -29,11 +29,10 @@ class GestorAgentes:
         cursor = conexion.cursor()
         
         try:
-            # CAMBIO APLICADO AQUÍ: agente.numero_placa en la tupla de valores
             cursor.execute('''
-                INSERT INTO agentes (nombre_completo, numero_identificacion, cargo, estado)
-                VALUES (?, ?, ?, ?)
-            ''', (agente.nombre_completo, agente.numero_placa, agente.cargo, agente.estado))
+                INSERT INTO agentes (nombre_completo, numero_identificacion, cargo, estado, id_usuario_registro)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (agente.nombre_completo, agente.numero_placa, agente.cargo, agente.estado, agente.id_usuario_registro))
             
             conexion.commit()
             return True, "Agente registrado exitosamente."
@@ -47,7 +46,7 @@ class GestorAgentes:
             conexion.close()
 
     @staticmethod
-    def modificar_agente(id_agente, nuevo_cargo, nuevo_estado):
+    def modificar_agente(id_agente, nuevo_cargo, nuevo_estado, id_usuario):
         """
         Modifica únicamente el cargo y el estado de un agente.
         No permite alterar el nombre completo ni el número de identificación oficial.
@@ -69,9 +68,9 @@ class GestorAgentes:
         try:
             cursor.execute('''
                 UPDATE agentes 
-                SET cargo = ?, estado = ?
+                SET cargo = ?, estado = ?, id_usuario_actualizacion = ?
                 WHERE id_agente = ?
-            ''', (nuevo_cargo, nuevo_estado, id_agente))
+            ''', (nuevo_cargo, nuevo_estado, id_usuario, id_agente))
 
             if cursor.rowcount == 0:
                 return False, "Error: No se encontró un agente con el ID especificado."

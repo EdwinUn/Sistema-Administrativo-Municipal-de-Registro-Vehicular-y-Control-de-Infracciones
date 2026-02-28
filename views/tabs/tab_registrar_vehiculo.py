@@ -12,9 +12,9 @@ from logic.gestor_vehiculos import GestorVehiculos
 # Ya no es "PanelVehiculos", ahora es un componente específico llamado "TabRegistrarVehiculo".
 # Hereda directamente de QWidget, por lo que esta clase ES la pestaña en sí misma.
 class TabRegistrarVehiculo(QWidget):
-    def __init__(self):
+    def __init__(self, usuario_actual):
         super().__init__()
-        # [REFACTORIZACIÓN]: Al nacer la clase, construimos su interfaz inmediatamente.
+        self.usuario_actual = usuario_actual
         self.configurar_ui()
 
     def configurar_ui(self):
@@ -144,7 +144,8 @@ class TabRegistrarVehiculo(QWidget):
         nuevo_vehiculo = Vehiculo(
             vin=vin, placa=placa, marca=marca, modelo=modelo, anio=anio, 
             color=color, clase=clase, estado_legal=estado, 
-            procedencia=procedencia, id_propietario=id_propietario
+            procedencia=procedencia, id_propietario=id_propietario,
+            id_usuario_registro=self.usuario_actual.id_usuario
         )
 
         exito, mensaje = GestorVehiculos.registrar_vehiculo(nuevo_vehiculo)

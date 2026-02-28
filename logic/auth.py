@@ -39,9 +39,9 @@ class Auth:
         
         try:
             cursor.execute('''
-                INSERT INTO usuarios (nombre_usuario, password, rol, estado)
-                VALUES (?, ?, ?, ?)
-            ''', (usuario.nombre_usuario, password_hash, usuario.rol, usuario.estado))
+                INSERT INTO usuarios (nombre_usuario, password, rol, estado, id_usuario_registro)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (usuario.nombre_usuario, password_hash, usuario.rol, usuario.estado, usuario.id_usuario_registro))
             
             conexion.commit()
             return True, "Usuario registrado exitosamente."

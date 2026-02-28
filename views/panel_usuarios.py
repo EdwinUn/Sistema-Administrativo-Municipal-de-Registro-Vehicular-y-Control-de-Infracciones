@@ -121,7 +121,11 @@ class PanelUsuarios(QWidget):
         password = self.input_password.text().strip()
         rol = self.combo_rol.currentText()
 
-        nuevo_usuario = Usuario(nombre_usuario=nombre, password=password, rol=rol)
+        nuevo_usuario = Usuario(nombre_usuario=nombre,
+                                password=password,
+                                rol=rol,
+                                id_usuario_registro=self.usuario_actual.id_usuario)
+        
         exito, msj = Auth.registrar_usuario(nuevo_usuario)
 
         if exito:
@@ -166,7 +170,9 @@ class PanelUsuarios(QWidget):
         nuevo_rol = self.combo_edit_rol.currentText()
         nuevo_estado = self.combo_edit_estado.currentText()
 
-        exito, msj = GestorUsuarios.actualizar_usuario(id_usuario, nuevo_rol, nuevo_estado)
+        exito, msj = GestorUsuarios.actualizar_usuario(
+            id_usuario, nuevo_rol, nuevo_estado,
+            self.usuario_actual.id_usuario)
 
         if exito:
             QMessageBox.information(self, "Actualizado", msj)

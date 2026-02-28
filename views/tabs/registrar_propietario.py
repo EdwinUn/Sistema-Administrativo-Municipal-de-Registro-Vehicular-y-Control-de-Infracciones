@@ -104,7 +104,8 @@ class TabRegistrarPropietario(QWidget):
             telefono=telefono, 
             correo_electronico=correo, 
             estado_licencia=licencia,
-            estado="Activo"  # El propietario nace como Activo
+            estado="Activo",
+            id_usuario_registro=self.usuario_actual.id_usuario
         )
         
         # Llamamos al gestor

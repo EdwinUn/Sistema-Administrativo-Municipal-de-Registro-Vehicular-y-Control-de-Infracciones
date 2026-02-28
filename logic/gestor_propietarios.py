@@ -42,11 +42,10 @@ class GestorPropietarios:
         try:
             # El ID interno no se envía en el INSERT porque es único, inmutable y se asigna automáticamente al registro[cite: 118].
             cursor.execute('''
-                INSERT INTO propietarios (nombre_completo, curp, direccion, telefono, correo_electronico, estado_licencia, estado)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO propietarios (nombre_completo, curp, direccion, telefono, correo_electronico, estado_licencia, estado, id_usuario_registro)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (propietario.nombre_completo, propietario.curp, propietario.direccion, 
-                propietario.telefono, propietario.correo_electronico, propietario.estado_licencia, propietario.estado))
-            
+                propietario.telefono, propietario.correo_electronico, propietario.estado_licencia, propietario.estado, propietario.id_usuario_registro))
             conexion.commit()
             return True, "Propietario registrado exitosamente."
             
@@ -59,7 +58,7 @@ class GestorPropietarios:
             conexion.close()
 
     @staticmethod
-    def modificar_propietario(id_propietario, nueva_direccion, nuevo_telefono, nuevo_correo, nuevo_estado_licencia, nuevo_estado):
+    def modificar_propietario(id_propietario, nueva_direccion, nuevo_telefono, nuevo_correo, nuevo_estado_licencia, nuevo_estado, id_usuario):
         """
         Actualiza la información de contacto y administrativa de un propietario.
         Bloquea el cambio a estado 'Inactivo' si el propietario tiene vehículos activos.
@@ -106,9 +105,10 @@ class GestorPropietarios:
                     telefono = ?, 
                     correo_electronico = ?, 
                     estado_licencia = ?, 
-                    estado = ?
+                    estado = ?,
+                    id_usuario_actualizacion = ?
                 WHERE id_propietario = ?
-            ''', (nueva_direccion, nuevo_telefono, nuevo_correo, nuevo_estado_licencia, nuevo_estado, id_propietario))
+            ''', (nueva_direccion, nuevo_telefono, nuevo_correo, nuevo_estado_licencia, nuevo_estado, id_usuario, id_propietario))
 
             if cursor.rowcount == 0:
                 return False, "Error: No se encontró un propietario con el ID especificado."
