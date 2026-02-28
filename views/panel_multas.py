@@ -146,17 +146,63 @@ class PanelMultas(QWidget):
     def construir_tab_gestionar(self):
         layout = QVBoxLayout(self.tab_gestionar)
         
-        # 1. ZONA DE BÚSQUEDA POR PLACA
-        lbl_ayuda = QLabel("🔍 ¿No conoce el folio? Busque las multas del vehículo:")
-        lbl_ayuda.setStyleSheet("font-weight: bold; color: #a6adc8; margin-top: 10px;")
+        # ==========================================
+        # 1. ZONA PRINCIPAL: COBRO DIRECTO POR FOLIO
+        # ==========================================
+        lbl_accion = QLabel(" Acción Rápida: Cobro o Cancelación")
+        lbl_accion.setStyleSheet("font-weight: bold; color: #cdd6f4; font-size: 16px;")
+        layout.addWidget(lbl_accion)
+
+        layout_accion = QHBoxLayout()
+        
+        # Input del Folio
+        self.input_buscar_folio = QLineEdit()
+        self.input_buscar_folio.setPlaceholderText("Ingrese el Folio de la Infracción (Ej. FOL-A1B2C3)")
+        self.input_buscar_folio.setStyleSheet("font-weight: bold; color: #f9e2af; font-size: 14px;") 
+        self.input_buscar_folio.setMinimumHeight(35)
+        
+        # Combo de Estado
+        self.combo_nuevo_estado = QComboBox()
+        self.combo_nuevo_estado.addItems(["Pagada", "Cancelada"]) 
+        self.combo_nuevo_estado.setMinimumHeight(35)
+
+        # Botón de Aplicar
+        self.btn_actualizar_estado = QPushButton("Aplicar Cambio")
+        self.btn_actualizar_estado.setStyleSheet("background-color: #2980b9; color: white; font-weight: bold; padding: 0px 20px;")
+        self.btn_actualizar_estado.setMinimumHeight(35)
+        self.btn_actualizar_estado.clicked.connect(self.procesar_cambio_estado)
+
+        layout_accion.addWidget(QLabel("Folio:"))
+        layout_accion.addWidget(self.input_buscar_folio, stretch=2)
+        layout_accion.addWidget(QLabel("Pasar a estado:"))
+        layout_accion.addWidget(self.combo_nuevo_estado, stretch=1)
+        layout_accion.addWidget(self.btn_actualizar_estado)
+        
+        layout.addLayout(layout_accion)
+
+        # ==========================================
+        # LÍNEA SEPARADORA
+        # ==========================================
+        linea = QFrame()
+        linea.setFrameShape(QFrame.HLine)
+        linea.setStyleSheet("background-color: #45475a; margin: 20px 0px;")
+        layout.addWidget(linea)
+
+        # ==========================================
+        # 2. ZONA SECUNDARIA: BÚSQUEDA POR PLACA (RESCATE)
+        # ==========================================
+        lbl_ayuda = QLabel(" ¿El ciudadano perdió la boleta? Busque por vehículo:")
+        lbl_ayuda.setStyleSheet("font-weight: bold; color: #a6adc8;")
         layout.addWidget(lbl_ayuda)
 
         layout_busqueda_placa = QHBoxLayout()
         self.input_buscar_placa = QLineEdit()
         self.input_buscar_placa.setPlaceholderText("Ingrese Placa o VIN del vehículo...")
+        self.input_buscar_placa.setMinimumHeight(35)
         
         btn_buscar_placa = QPushButton("Buscar Multas")
         btn_buscar_placa.setStyleSheet("background-color: #45475a; color: white;")
+        btn_buscar_placa.setMinimumHeight(35)
         btn_buscar_placa.clicked.connect(self.buscar_multas_por_placa)
         
         layout_busqueda_placa.addWidget(self.input_buscar_placa)
@@ -170,41 +216,10 @@ class PanelMultas(QWidget):
         self.tabla_multas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tabla_multas.setSelectionBehavior(QTableWidget.SelectRows)
         self.tabla_multas.setEditTriggers(QTableWidget.NoEditTriggers) 
-        self.tabla_multas.setMaximumHeight(150) 
         
         # EVENTO CLAVE: Autocompletar el folio al hacer clic
         self.tabla_multas.itemClicked.connect(self.seleccionar_folio_de_tabla)
         layout.addWidget(self.tabla_multas)
-        
-        # LÍNEA SEPARADORA
-        linea = QFrame()
-        linea.setFrameShape(QFrame.HLine)
-        linea.setStyleSheet("background-color: #45475a; margin: 15px 0px;")
-        layout.addWidget(linea)
-
-        # 2. ZONA DE ACCIÓN: CAMBIAR ESTADO
-        layout_busqueda = QHBoxLayout()
-        self.input_buscar_folio = QLineEdit()
-        self.input_buscar_folio.setPlaceholderText(" ")
-        self.input_buscar_folio.setStyleSheet("font-weight: bold; color: #f9e2af;") 
-        
-        layout_busqueda.addWidget(QLabel("Folio a Pagar/Cancelar:"))
-        layout_busqueda.addWidget(self.input_buscar_folio)
-        layout.addLayout(layout_busqueda)
-
-        formulario = QFormLayout()
-        self.combo_nuevo_estado = QComboBox()
-        self.combo_nuevo_estado.addItems(["Pagada", "Cancelada"]) 
-
-        formulario.addRow("Cambiar estado a:", self.combo_nuevo_estado)
-        layout.addLayout(formulario)
-
-        self.btn_actualizar_estado = QPushButton("Aplicar Cambio de Estado")
-        self.btn_actualizar_estado.setStyleSheet("background-color: #2980b9; color: white; font-weight: bold; padding: 10px;")
-        self.btn_actualizar_estado.clicked.connect(self.procesar_cambio_estado)
-        
-        layout.addStretch() 
-        layout.addWidget(self.btn_actualizar_estado, alignment=Qt.AlignRight)
         
     def aplicar_permisos(self):
         rol = self.usuario_actual.rol

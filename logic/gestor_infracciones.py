@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 from datetime import datetime
 from database.conexion import obtener_conexion
 from logic.validador import Validador
@@ -56,24 +57,20 @@ class GestorInfracciones:
                 return False, "Error: Solo los agentes con estado 'Activo' pueden registrar nuevas infracciones."
 
             # 5. Generación automática del Folio Único
-            # 🚨 CAMBIO: Se eliminó la generación de texto con UUID. SQLite asignará el ID.
-
+            folio_generado = f"FOL-{uuid.uuid4().hex[:6].upper()}"
+            
             # 6. Guardar en la base de datos
             estado_inicial = "Pendiente"
 
-            # 🚨 CAMBIO: Quitamos 'folio' del INSERT. Dejamos que SQLite asigne la Primary Key 🚨
             cursor.execute('''
-                INSERT INTO infracciones (fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin_infractor, id_agente, licencia_conductor)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (infraccion.fecha, infraccion.hora, infraccion.lugar, 
+                INSERT INTO infracciones (folio, fecha, hora, lugar, tipo_infraccion, motivo, monto, estado, vin_infractor, id_agente, licencia_conductor)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (folio_generado, infraccion.fecha, infraccion.hora, infraccion.lugar, 
                 infraccion.tipo_infraccion, infraccion.motivo, infraccion.monto, 
                 estado_inicial, infraccion.vin_infractor, infraccion.id_agente, infraccion.licencia_conductor))
             
-            # 🚨 MAGIA: Rescatamos la Key que SQLite acaba de generar y la usamos como folio 🚨
-            id_generado = cursor.lastrowid
-            
             conexion.commit()
-            return True, f"Infracción registrada exitosamente.\n\nEl Folio asignado es: {id_generado}"
+            return True, f"Infracción registrada exitosamente.\n\nEl Folio asignado es: {folio_generado}"
             
         except sqlite3.IntegrityError as e:
             return False, f"Error de integridad en la base de datos: {str(e)}"
@@ -83,7 +80,7 @@ class GestorInfracciones:
             conexion.close()
             
     @staticmethod
-    def cambiar_estado_infraccion(id_infraccion, nuevo_estado): # 🚨 CAMBIO: Recibe id_infraccion numérico
+    def cambiar_estado_infraccion(folio, nuevo_estado):
         """
         Cambia el estado de una infracción asegurando que se respeten 
         las reglas de transición del negocio.
@@ -97,8 +94,7 @@ class GestorInfracciones:
 
         try:
             # 2. Consultar el estado actual de la infracción
-            # 🚨 CAMBIO: Consultamos usando id_infraccion 🚨
-            cursor.execute("SELECT estado FROM infracciones WHERE id_infraccion = ?", (id_infraccion,))
+            cursor.execute("SELECT estado FROM infracciones WHERE folio = ?", (folio,))
             resultado = cursor.fetchone()
 
             if not resultado:
@@ -123,11 +119,11 @@ class GestorInfracciones:
             cursor.execute('''
                 UPDATE infracciones 
                 SET estado = ?
-                WHERE id_infraccion = ?
-            ''', (nuevo_estado, id_infraccion))
+                WHERE folio = ?
+            ''', (nuevo_estado, folio))
 
             conexion.commit()
-            return True, f"El estado de la infracción #{id_infraccion} se ha actualizado correctamente a '{nuevo_estado}'."
+            return True, f"El estado de la infracción #{folio} se ha actualizado correctamente a '{nuevo_estado}'."
 
         except Exception as e:
             return False, f"Error inesperado al cambiar el estado de la infracción: {str(e)}"
@@ -147,9 +143,8 @@ class GestorInfracciones:
         cursor = conexion.cursor()
         
         try:
-            # 🚨 CAMBIO: Seleccionamos el id_infraccion numérico de la tabla 🚨
             cursor.execute('''
-                SELECT i.id_infraccion, i.fecha, i.tipo_infraccion, i.monto, i.estado
+                SELECT i.folio, i.fecha, i.tipo_infraccion, i.monto, i.estado
                 FROM infracciones i
                 JOIN vehiculos v ON i.vin_infractor = v.vin
                 WHERE v.placa = ? OR v.vin = ?
