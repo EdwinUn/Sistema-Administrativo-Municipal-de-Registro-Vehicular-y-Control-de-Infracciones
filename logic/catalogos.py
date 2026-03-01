@@ -193,6 +193,7 @@ ROLES_USUARIO = [
 ]
 
 TABULADOR_INFRACCIONES = {
+    # --- ORIGINALES ---
     "EXCESO_VELOCIDAD": {
         "descripcion": "Exceso de velocidad",
         "articulo": "Art. 64",
@@ -230,16 +231,116 @@ TABULADOR_INFRACCIONES = {
         "suspension_licencia": True
     },
     "FALTA_DOCUMENTOS": {
-        "descripcion": "Falta de documentos",
+        "descripcion": "Falta de documentos (Tarjeta/Licencia)",
         "articulo": "Art. 34",
         "multa": {"min": 800.00, "max": 1500.00},
         "puntos": 0,
+        "corralon": True
+    },
+
+    # --- NUEVAS INCORPORACIONES REALISTAS ---
+    "SEMAFORO_ROJO": {
+        "descripcion": "No respetar luz roja de semáforo",
+        "articulo": "Art. 147",
+        "multa": {"min": 1600.00, "max": 2800.00},
+        "puntos": 4,
+        "corralon": False
+    },
+    "SENTIDO_CONTRARIO": {
+        "descripcion": "Circular en sentido contrario",
+        "articulo": "Art. 141",
+        "multa": {"min": 1300.00, "max": 2200.00},
+        "puntos": 4,
+        "corralon": False
+    },
+    "SIN_PLACAS": {
+        "descripcion": "Circular sin placas o placas ocultas",
+        "articulo": "Art. 38",
+        "multa": {"min": 2500.00, "max": 4000.00},
+        "puntos": 0,
+        "corralon": True
+    },
+    "VIDRIOS_POLARIZADOS": {
+        "descripcion": "Vidrios con opacidad no permitida",
+        "articulo": "Art. 36",
+        "multa": {"min": 800.00, "max": 1600.00},
+        "puntos": 0,
+        "corralon": False
+    },
+    "LUGAR_DISCAPACITADOS": {
+        "descripcion": "Obstruir cajón para personas con discapacidad",
+        "articulo": "Art. 211",
+        "multa": {"min": 3200.00, "max": 5400.00},
+        "puntos": 3,
+        "corralon": True
+    },
+    "CASCO_MOTOCICLETA": {
+        "descripcion": "No portar casco protector (Motociclistas)",
+        "articulo": "Art. 222",
+        "multa": {"min": 500.00, "max": 1100.00},
+        "puntos": 2,
+        "corralon": True
+    },
+    "VUELTA_PROHIBIDA": {
+        "descripcion": "Realizar vuelta en U o prohibida",
+        "articulo": "Art. 150",
+        "multa": {"min": 850.00, "max": 1700.00},
+        "puntos": 2,
+        "corralon": False
+    },
+    "LUCES_DEFECTUOSAS": {
+        "descripcion": "Circular sin luces o luces fundidas",
+        "articulo": "Art. 30",
+        "multa": {"min": 450.00, "max": 950.00},
+        "puntos": 1,
+        "corralon": False
+    },
+    "OBSTRUIR_PASO_EMERGENCIA": {
+        "descripcion": "No ceder el paso a vehículos de emergencia",
+        "articulo": "Art. 162",
+        "multa": {"min": 1800.00, "max": 3100.00},
+        "puntos": 3,
+        "corralon": False
+    },
+    "MANEJO_TEMERARIO": {
+        "descripcion": "Manejo negligente o temerario",
+        "articulo": "Art. 101",
+        "multa": {"min": 4000.00, "max": 6500.00},
+        "puntos": 5,
+        "corralon": True
+    },
+    "MENOR_SIN_SILLA": {
+        "descripcion": "Menor de 5 años sin silla de retención",
+        "articulo": "Art. 68",
+        "multa": {"min": 1500.00, "max": 2600.00},
+        "puntos": 3,
+        "corralon": False
+    },
+    "INVADIR_CARRIL_BUS": {
+        "descripcion": "Circular o invadir carril de transporte público",
+        "articulo": "Art. 135",
+        "multa": {"min": 2100.00, "max": 3800.00},
+        "puntos": 2,
+        "corralon": True
+    },
+    "RUIDO_EXCESIVO": {
+        "descripcion": "Emisión de ruidos molestos o escape modificado",
+        "articulo": "Art. 42",
+        "multa": {"min": 550.00, "max": 1100.00},
+        "puntos": 0,
+        "corralon": False
+    },
+    "OBSTRUIR_PEATON": {
+        "descripcion": "No ceder el paso o invadir zona peatonal",
+        "articulo": "Art. 115",
+        "multa": {"min": 1100.00, "max": 1900.00},
+        "puntos": 3,
         "corralon": False
     },
     "OTRO": {
         "descripcion": "Otro",
         "articulo": "Art. 1 (General)",
-        "multa": {"min": 100.00, "max": 10000.00}, # Un rango muy amplio para casos atípicos
+        "multa": {"min": 100.00, "max": 10000.00},
         "puntos": 0,
         "corralon": False
     }
