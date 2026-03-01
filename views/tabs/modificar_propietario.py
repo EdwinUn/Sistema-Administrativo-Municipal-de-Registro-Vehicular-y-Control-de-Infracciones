@@ -1,214 +1,145 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-QLineEdit, QPushButton, QComboBox, QFormLayout, QMessageBox)
-from PySide6.QtCore import Qt, QRegularExpression
-from PySide6.QtGui import QRegularExpressionValidator
-
+                             QLineEdit, QPushButton, QComboBox, QGridLayout, 
+                             QMessageBox, QGroupBox, QScrollArea)
+from PySide6.QtCore import Qt
 import logic.catalogos as cat
 from logic.gestor_propietarios import GestorPropietarios
-# Importaremos el Gestor más adelante
-# from logic.gestor_propietarios import GestorPropietarios
 
 class TabModificarPropietario(QWidget):
     def __init__(self, usuario_actual):
         super().__init__()
         self.usuario_actual = usuario_actual
         self.configurar_ui()
-        self.aplicar_permisos() # Activamos los candados de seguridad al nacer
 
     def configurar_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # ==========================================
-        # 1. ZONA DE BÚSQUEDA
-        # ==========================================
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QScrollArea.NoFrame)
+        widget_contenedor = QWidget()
+        layout_principal = QVBoxLayout(widget_contenedor)
+        layout_principal.setSpacing(20)
+        layout_principal.setContentsMargins(30, 20, 30, 20)
+
+        # --- BÚSQUEDA ---
         layout_busqueda = QHBoxLayout()
         self.input_buscar_curp = QLineEdit()
-        self.input_buscar_curp.setPlaceholderText("Ingrese la CURP a buscar...")
-        self.input_buscar_curp.setMaxLength(18)
-        
+        self.input_buscar_curp.setPlaceholderText("CURP a buscar...")
         btn_buscar = QPushButton("Buscar")
         btn_buscar.clicked.connect(self.procesar_busqueda)
-
-        layout_busqueda.addWidget(QLabel("CURP del Propietario:"))
+        layout_busqueda.addWidget(QLabel("CURP:"))
         layout_busqueda.addWidget(self.input_buscar_curp)
         layout_busqueda.addWidget(btn_buscar)
-        
-        layout.addLayout(layout_busqueda)
+        layout_principal.addLayout(layout_busqueda)
 
-        # ==========================================
-        # 2. FORMULARIO DE MODIFICACIÓN
-        # ==========================================
-        formulario = QFormLayout()
-        
-        # --- CAMPOS DE SOLO LECTURA (Estructurales) ---
-        self.mod_id = QLineEdit()
-        self.mod_id.setReadOnly(True)
-        self.mod_id.setPlaceholderText("Se llenará automáticamente")
-        
-        self.mod_nombre = QLineEdit()
-        self.mod_nombre.setReadOnly(True)
-        
-        self.mod_curp = QLineEdit()
-        self.mod_curp.setReadOnly(True)
+        # --- BLOQUE 1: DATOS PERSONALES (SOLO LECTURA) ---
+        grupo_personales = QGroupBox("Datos Personales (Inmutables)")
+        grupo_personales.setStyleSheet("QGroupBox { font-weight: bold; color: #f38ba8; padding-top: 20px; }")
+        grid_pers = QGridLayout()
+        grid_pers.setSpacing(15)
 
-        # --- CAMPOS EDITABLES (Contacto) ---
-        self.mod_direccion = QLineEdit()
-        
-        self.mod_telefono = QLineEdit()
-        self.mod_telefono.setMaxLength(10)
-        validador_numeros = QRegularExpressionValidator(QRegularExpression(r"^[0-9]+$"))
-        self.mod_telefono.setValidator(validador_numeros)
-        
+        self.mod_id = QLineEdit(); self.mod_id.setReadOnly(True)
+        self.mod_nombres = QLineEdit(); self.mod_nombres.setReadOnly(True)
+        self.mod_ap_paterno = QLineEdit(); self.mod_ap_paterno.setReadOnly(True)
+        self.mod_ap_materno = QLineEdit(); self.mod_ap_materno.setReadOnly(True)
+        self.mod_curp = QLineEdit(); self.mod_curp.setReadOnly(True)
+
+        grid_pers.addWidget(QLabel("ID Propietario:"), 0, 0); grid_pers.addWidget(self.mod_id, 0, 1)
+        grid_pers.addWidget(QLabel("CURP:"), 0, 2); grid_pers.addWidget(self.mod_curp, 0, 3)
+        grid_pers.addWidget(QLabel("Nombre(s):"), 1, 0); grid_pers.addWidget(self.mod_nombres, 1, 1, 1, 3)
+        grid_pers.addWidget(QLabel("Ap. Paterno:"), 2, 0); grid_pers.addWidget(self.mod_ap_paterno, 2, 1)
+        grid_pers.addWidget(QLabel("Ap. Materno:"), 2, 2); grid_pers.addWidget(self.mod_ap_materno, 2, 3)
+        grupo_personales.setLayout(grid_pers); layout_principal.addWidget(grupo_personales)
+
+        # --- BLOQUE 2: DIRECCIÓN (EDITABLE) ---
+        grupo_dir = QGroupBox("Dirección Actualizable")
+        grupo_dir.setStyleSheet("QGroupBox { font-weight: bold; color: #89b4fa; padding-top: 20px; }")
+        grid_dir = QGridLayout(); grid_dir.setSpacing(15)
+
+        self.mod_calle = QLineEdit()
+        self.mod_num_ext = QLineEdit()
+        self.mod_num_int = QLineEdit()
+        self.mod_colonia = QLineEdit()
+        self.mod_cp = QLineEdit()
+        self.mod_ciudad = QLineEdit()
+        self.mod_ciudad.setReadOnly(True)
+        self.mod_ciudad.setStyleSheet("background-color: #181825; color: #a6adc8;")
+        self.mod_estado_prov = QLineEdit()
+        self.mod_estado_prov.setReadOnly(True)
+        self.mod_estado_prov.setStyleSheet("background-color: #181825; color: #a6adc8;")
+
+        grid_dir.addWidget(QLabel("Calle:"), 0, 0); grid_dir.addWidget(self.mod_calle, 0, 1, 1, 3)
+        grid_dir.addWidget(QLabel("No. Ext:"), 1, 0); grid_dir.addWidget(self.mod_num_ext, 1, 1)
+        grid_dir.addWidget(QLabel("No. Int:"), 1, 2); grid_dir.addWidget(self.mod_num_int, 1, 3)
+        grid_dir.addWidget(QLabel("Colonia:"), 2, 0); grid_dir.addWidget(self.mod_colonia, 2, 1)
+        grid_dir.addWidget(QLabel("C.P.:"), 2, 2); grid_dir.addWidget(self.mod_cp, 2, 3)
+        self.mod_cp.textChanged.connect(self.autocompletar_ubicacion_mod)
+        grid_dir.addWidget(QLabel("Ciudad:"), 3, 0); grid_dir.addWidget(self.mod_ciudad, 3, 1)
+        grid_dir.addWidget(QLabel("Estado:"), 3, 2); grid_dir.addWidget(self.mod_estado_prov, 3, 3)
+        grupo_dir.setLayout(grid_dir); layout_principal.addWidget(grupo_dir)
+
+        # --- BLOQUE 3: CONTACTO Y ESTADO (EDITABLE) ---
+        grupo_cont = QGroupBox("Contacto y Estado Administrativo")
+        grupo_cont.setStyleSheet("QGroupBox { font-weight: bold; color: #89b4fa; padding-top: 20px; }")
+        grid_cont = QGridLayout(); grid_cont.setSpacing(15)
+
+        self.mod_tel = QLineEdit()
         self.mod_correo = QLineEdit()
+        self.mod_lic = QComboBox(); self.mod_lic.addItems(["Vigente", "Suspendida", "Cancelada", "Vencida"])
+        self.mod_estado_sis = QComboBox(); self.mod_estado_sis.addItems(["Activo", "Inactivo"])
 
-        # --- CAMPOS EDITABLES (Administrativos) ---
-        self.mod_licencia = QComboBox()
-        self.mod_licencia.setPlaceholderText("Seleccione un estado...")
-        self.mod_licencia.addItems(["Vigente", "Suspendida", "Cancelada / Vencida"])
-        self.mod_licencia.setCurrentIndex(-1)
-        
-        self.mod_estado = QComboBox()
-        self.mod_estado.setPlaceholderText("Seleccione un estado...")
-        self.mod_estado.addItems(["Activo", "Inactivo"])
-        self.mod_estado.setCurrentIndex(-1)
+        grid_cont.addWidget(QLabel("Teléfono:"), 0, 0); grid_cont.addWidget(self.mod_tel, 0, 1)
+        grid_cont.addWidget(QLabel("Correo:"), 0, 2); grid_cont.addWidget(self.mod_correo, 0, 3)
+        grid_cont.addWidget(QLabel("Licencia:"), 1, 0); grid_cont.addWidget(self.mod_lic, 1, 1)
+        grid_cont.addWidget(QLabel("Estado:"), 1, 2); grid_cont.addWidget(self.mod_estado_sis, 1, 3)
+        grupo_cont.setLayout(grid_cont); layout_principal.addWidget(grupo_cont)
 
-        # --- ENSAMBLAJE DEL FORMULARIO ---
-        formulario.addRow("ID Interno:", self.mod_id)
-        formulario.addRow("Nombre Completo:", self.mod_nombre)
-        formulario.addRow("CURP:", self.mod_curp)
-        
-        formulario.addRow("Dirección:", self.mod_direccion)
-        formulario.addRow("Teléfono:", self.mod_telefono)
-        formulario.addRow("Correo Electrónico:", self.mod_correo)
-        formulario.addRow("Estado de Licencia:", self.mod_licencia)
-        formulario.addRow("Estado en Sistema:", self.mod_estado)
-        
-        layout.addLayout(formulario)
-        
-        # ==========================================
-        # MARCA DE AGUA DE AUDITORÍA
-        # ==========================================
+        # Auditoría
         self.lbl_auditoria = QLabel("")
         self.lbl_auditoria.setStyleSheet("color: #7f8c8d; font-size: 11px; font-style: italic;")
-        layout.addWidget(self.lbl_auditoria, alignment=Qt.AlignLeft)
+        layout_principal.addWidget(self.lbl_auditoria)
 
-        # ==========================================
-        # 3. BOTÓN DE ACTUALIZACIÓN
-        # ==========================================
-        self.btn_actualizar = QPushButton("Actualizar Datos")
-        self.btn_actualizar.setStyleSheet("background-color: #f39c12; color: white; font-weight: bold; padding: 10px;")
+        # Botón
+        self.btn_actualizar = QPushButton("Actualizar Propietario")
+        self.btn_actualizar.setStyleSheet("background-color: #f39c12; color: white; font-weight: bold; padding: 12px;")
         self.btn_actualizar.clicked.connect(self.procesar_actualizacion)
-        
-        layout.addStretch() 
-        layout.addWidget(self.btn_actualizar, alignment=Qt.AlignRight)
+        layout_principal.addWidget(self.btn_actualizar, alignment=Qt.AlignRight)
 
-    # ==========================================
-    # SEGURIDAD Y PERMISOS (RBAC)
-    # ==========================================
-    def aplicar_permisos(self):
-        """Bloquea los elementos editables si el usuario es Agente o Supervisor."""
-        rol = self.usuario_actual.rol
-        
-        
-        if rol not in ["Administrador", "Supervisor"]:
-            self.lbl_auditoria.setVisible(False)
-        
-        # Agente de Tránsito [2] o Supervisor [3]
-        if rol in [cat.ROLES_USUARIO[2], cat.ROLES_USUARIO[3]]:
-            self.btn_actualizar.setVisible(False)
-            
-            # Bloqueamos físicamente los campos para que sean de solo lectura
-            self.mod_direccion.setReadOnly(True)
-            self.mod_telefono.setReadOnly(True)
-            self.mod_correo.setReadOnly(True)
-            
-            # Apagamos los combos
-            self.mod_licencia.setEnabled(False)
-            self.mod_estado.setEnabled(False)
+        scroll_area.setWidget(widget_contenedor)
+        QVBoxLayout(self).addWidget(scroll_area)
 
-    # ==========================================
-    # LÓGICA DE INTERFAZ
-    # ==========================================
     def procesar_busqueda(self):
-        curp_buscada = self.input_buscar_curp.text().strip().upper()
-        
-        if not curp_buscada:
-            QMessageBox.warning(self, "Atención", "Por favor, ingrese una CURP para buscar.")
-            return
-            
-        exito, resultado = GestorPropietarios.buscar_propietario_por_curp(curp_buscada)
-        
+        curp = self.input_buscar_curp.text().strip().upper()
+        exito, res = GestorPropietarios.buscar_propietario_por_curp(curp)
         if exito:
-            id_real = resultado["id_propietario"]
-            self.mod_id.setText(f"PRP-{id_real:05d}")
-            self.mod_nombre.setText(resultado["nombre_completo"])
-            self.mod_curp.setText(resultado["curp"])
-            self.mod_direccion.setText(resultado["direccion"])
-            self.mod_telefono.setText(resultado["telefono"])
-            self.mod_correo.setText(resultado["correo"])
-            
-            self.mod_licencia.setCurrentText(resultado["estado_licencia"])
-            self.mod_estado.setCurrentText(resultado["estado"])
-            
-            # MOSTRAR AUDITORÍA
-            creador = resultado["creador"]
-            modificador = resultado["modificador"]
-            self.lbl_auditoria.setText(f"Registro original por: {creador} | Última modificación por: {modificador}")
-            self.lbl_auditoria.show()
-            
-            QMessageBox.information(self, "Propietario Encontrado", "Datos cargados correctamente.")
+            self.mod_id.setText(f"PRP-{res['id_propietario']:05d}")
+            self.mod_nombres.setText(res['nombres']); self.mod_ap_paterno.setText(res['apellido_paterno'])
+            self.mod_ap_materno.setText(res['apellido_materno']); self.mod_curp.setText(res['curp'])
+            self.mod_calle.setText(res['calle']); self.mod_num_ext.setText(res['numero_exterior'])
+            self.mod_num_int.setText(res['numero_interior']); self.mod_colonia.setText(res['colonia'])
+            self.mod_cp.setText(res['codigo_postal']); self.mod_ciudad.setText(res['ciudad'])
+            self.mod_estado_prov.setText(res['estado_provincia']); self.mod_tel.setText(res['telefono'])
+            self.mod_correo.setText(res['correo']); self.mod_lic.setCurrentText(res['estado_licencia'])
+            self.mod_estado_sis.setCurrentText(res['estado'])
+            self.lbl_auditoria.setText(f"Registrado por: {res['creador']} | Última modificación: {res['modificador']}")
         else:
-            self.limpiar_formulario()
-            self.lbl_auditoria.hide()
-            QMessageBox.critical(self, "No encontrado", "No existe un propietario con esa CURP.")
-
-    def limpiar_formulario(self):
-        """Vacía las cajas de texto."""
-        self.mod_id.clear()
-        self.mod_nombre.clear()
-        self.mod_curp.clear()
-        self.mod_direccion.clear()
-        self.mod_telefono.clear()
-        self.mod_correo.clear()
-        
-        self.mod_licencia.setCurrentIndex(-1)
-        self.mod_estado.setCurrentIndex(-1)
-        
-        self.lbl_auditoria.clear()
-        self.lbl_auditoria.hide()
+            QMessageBox.critical(self, "Error", res)
 
     def procesar_actualizacion(self):
-        if not self.mod_curp.text():
-            QMessageBox.warning(self, "Acción Inválida", "Primero debe buscar un propietario.")
-            return
-
-        # Extraemos los datos editables
-        direccion = self.mod_direccion.text().strip().upper()
-        telefono = self.mod_telefono.text().strip()
-        correo = self.mod_correo.text().strip().lower()
-        licencia = self.mod_licencia.currentText()
-        estado = self.mod_estado.currentText()
+        id_prop = int(self.mod_id.text().replace("PRP-", ""))
+        datos = {
+            "calle": self.mod_calle.text().strip().upper(), "num_ext": self.mod_num_ext.text().strip().upper(),
+            "num_int": self.mod_num_int.text().strip().upper(), "colonia": self.mod_colonia.text().strip().upper(),
+            "cp": self.mod_cp.text().strip(), "ciudad": self.mod_ciudad.text().strip().upper(),
+            "estado_prov": self.mod_estado_prov.text().strip().upper(), "telefono": self.mod_tel.text().strip(),
+            "correo": self.mod_correo.text().strip().lower(), "licencia": self.mod_lic.currentText(),
+            "estado": self.mod_estado_sis.currentText()
+        }
+        exito, msj = GestorPropietarios.modificar_propietario(id_prop, datos, self.usuario_actual.id_usuario)
+        if exito: QMessageBox.information(self, "Éxito", msj)
+        else: QMessageBox.critical(self, "Error", msj)
         
-        # Extraemos el ID numérico que el backend exige
-        texto_id = self.mod_id.text().replace("PRP-", "")
-        id_objetivo = int(texto_id)
-
-        # Validaciones básicas antes de enviar
-        if not direccion or not telefono:
-            QMessageBox.warning(self, "Campos Vacíos", "La dirección y el teléfono no pueden quedar vacíos.")
-            return
-
-        exito, mensaje = GestorPropietarios.modificar_propietario(
-            id_objetivo, direccion, telefono, correo, licencia, estado,
-            self.usuario_actual.id_usuario
-        )
-        
-        # Retroalimentación visual según el resultado
-        if exito:
-            QMessageBox.information(self, "Actualización Exitosa", mensaje)
-            self.limpiar_formulario()
-            self.input_buscar_curp.clear()
-        else:
-            # Si falla (ej. intentar inactivar a alguien con vehículos activos o error de BD)
-            QMessageBox.critical(self, "Error al Actualizar", mensaje)
-
+    def autocompletar_ubicacion_mod(self, cp_texto):
+        if cp_texto in cat.MAPEO_CP:
+            ciudad, estado = cat.MAPEO_CP[cp_texto]
+            self.mod_ciudad.setText(ciudad)
+            self.mod_estado_prov.setText(estado)

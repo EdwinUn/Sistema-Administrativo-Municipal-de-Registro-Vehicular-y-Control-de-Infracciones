@@ -51,15 +51,29 @@ def crear_tablas():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS propietarios (
             id_propietario INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre_completo TEXT NOT NULL,
+            
+            -- Datos Personales Desglosados
+            nombres TEXT NOT NULL,
+            apellido_paterno TEXT NOT NULL,
+            apellido_materno TEXT,
             curp TEXT UNIQUE NOT NULL,
-            direccion TEXT,
+            
+            -- Dirección Desglosada
+            calle TEXT NOT NULL,
+            numero_exterior TEXT NOT NULL,
+            numero_interior TEXT,
+            colonia TEXT NOT NULL,
+            codigo_postal TEXT NOT NULL,
+            ciudad TEXT NOT NULL,
+            estado_provincia TEXT NOT NULL,
+            
+            -- Contacto y Administrativo (Los que ya tenías)
             telefono TEXT,
             correo_electronico TEXT,
             estado_licencia TEXT,
             estado TEXT DEFAULT 'Activo',
             
-            -- COLUMNAS DE AUDITORÍA
+            -- COLUMNAS DE AUDITORÍA (Restauradas)
             id_usuario_registro INTEGER NOT NULL,
             id_usuario_actualizacion INTEGER,
             

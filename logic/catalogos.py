@@ -245,4 +245,15 @@ TABULADOR_INFRACCIONES = {
     }
 }
 
+# Mapeo de Código Postal a Ciudad y Estado
+MAPEO_CP = {
+    "97000": ("Mérida", "Yucatán"),
+    "97100": ("Mérida", "Yucatán"),
+    "97130": ("Mérida", "Yucatán"),
+    "97302": ("Progreso", "Yucatán"),
+    "97370": ("Kanasín", "Yucatán"),
+    # Puedes agregar más aquí...
+}
+
+
 TIPOS_INFRACCION = [datos["descripcion"] for datos in TABULADOR_INFRACCIONES.values()]

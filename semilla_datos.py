@@ -41,14 +41,18 @@ def generar_datos_prueba():
 
         # 3. PROPIETARIOS
         propietarios = [
-            ("Juan Pérez López", "PELJ800101HDFRRN01", "Calle 60 #123", "9991234567", "juan@mail.com", "Vigente", 1),
-            ("María García Sosa", "GASM900505MDFRRN02", "Av. Itzaes #456", "9997654321", "maria@mail.com", "Vigente", 1),
-            ("Carlos López Ruiz", "LORC750312HDFRRN03", "Calle 50 #789", "9995551122", "carlos.lopez@mail.com", "Suspendida", 1) # <-- OJO: Suspendida
+            # Nombres, Ap_Paterno, Ap_Materno, CURP, Calle, Num_Ext, Num_Int, Colonia, CP, Ciudad, Estado_Prov, Telefono, Correo, Estado_Licencia, ID_Registro
+            ("Juan", "Pérez", "López", "PELJ800101HDFRRN01", "Calle 60", "123", "", "Centro", "97000", "Mérida", "Yucatán", "9991234567", "juan@mail.com", "Vigente", 1),
+            ("María", "García", "Sosa", "GASM900505MDFRRN02", "Av. Itzaes", "456", "", "García Ginerés", "97070", "Mérida", "Yucatán", "9997654321", "maria@mail.com", "Vigente", 1),
+            ("Carlos", "López", "Ruiz", "LORC750312HDFRRN03", "Calle 50", "789", "A", "Pacabtún", "97160", "Mérida", "Yucatán", "9995551122", "carlos.lopez@mail.com", "Suspendida", 1) # <-- OJO: Suspendida
         ]
+        
         cursor.executemany('''INSERT OR IGNORE INTO propietarios 
-            (nombre_completo, curp, direccion, telefono, correo_electronico, estado_licencia, id_usuario_registro) 
-            VALUES (?,?,?,?,?,?,?)''', propietarios)
-
+            (nombres, apellido_paterno, apellido_materno, curp, calle, numero_exterior, 
+            numero_interior, colonia, codigo_postal, ciudad, estado_provincia, 
+            telefono, correo_electronico, estado_licencia, id_usuario_registro) 
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', propietarios)
+        
         # 4. VEHÍCULOS
         vehiculos = [
             ("VIN00000000000001", "YUC-1001", "Toyota", "Corolla", 2022, "Gris", "Sedán", "Nacional", 1, 1), # De Juan
