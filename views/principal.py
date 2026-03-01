@@ -8,6 +8,7 @@ from views.panel_multas import PanelMultas
 from views.panel_propietarios import PanelPropietarios
 from views.panel_reportes import PanelReportes
 from views.panel_usuarios import PanelUsuarios
+from views.panel_agentes import PanelAgentes
 
 # Importación del backend para el Dashboard
 from logic.gestor_vehiculos import GestorVehiculos
@@ -58,6 +59,8 @@ class VentanaPrincipal(QMainWindow):
         self.btn_infracciones = self.crear_boton_menu("Infracciones")
         self.btn_reportes = self.crear_boton_menu("Reportes")
         self.btn_usuarios = self.crear_boton_menu("Gestión Usuarios")
+        self.btn_agentes = self.crear_boton_menu("Agentes")
+        
 
         self.btn_cerrar_sesion = self.crear_boton_menu("Cerrar Sesión")
         # Le damos un estilo rojo peligro para diferenciarlo
@@ -77,9 +80,10 @@ class VentanaPrincipal(QMainWindow):
         layout_menu.addWidget(self.btn_vehiculos)
         layout_menu.addWidget(self.btn_propietarios)
         layout_menu.addWidget(self.btn_infracciones)
+        layout_menu.addWidget(self.btn_agentes)
         layout_menu.addWidget(self.btn_reportes)
         layout_menu.addWidget(self.btn_usuarios)
-
+        
         layout_menu.addStretch() 
         layout_menu.addWidget(self.btn_cerrar_sesion)
         
@@ -93,6 +97,7 @@ class VentanaPrincipal(QMainWindow):
         self.vista_vehiculos = PanelVehiculos(self.usuario)
         self.vista_propietarios = PanelPropietarios(self.usuario)
         self.vista_multas = PanelMultas(self.usuario)
+        self.vista_agentes = PanelAgentes(self.usuario)
         self.vista_reportes = PanelReportes(self.usuario)
         self.vista_usuarios = PanelUsuarios(self.usuario)
 
@@ -103,6 +108,7 @@ class VentanaPrincipal(QMainWindow):
         self.stacked_widget.addWidget(self.vista_multas)       # Índice 3
         self.stacked_widget.addWidget(self.vista_reportes)     # Índice 4
         self.stacked_widget.addWidget(self.vista_usuarios)     # Índice 5
+        self.stacked_widget.addWidget(self.vista_agentes)
 
         # Conectar botones con la función de cambio de página
         # === NUEVO: Al darle a inicio, también actualiza los números ===
@@ -112,7 +118,7 @@ class VentanaPrincipal(QMainWindow):
         self.btn_infracciones.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
         self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(4))
         self.btn_usuarios.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(5))
-
+        self.btn_agentes.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(6))
         self.btn_cerrar_sesion.clicked.connect(self.ejecutar_cierre_sesion)
         # Ensamblar el layout principal
         layout_principal.addWidget(self.menu_lateral)
@@ -314,25 +320,26 @@ class VentanaPrincipal(QMainWindow):
     # PERMISOS
     # ==========================
     def aplicar_permisos_rol(self):
-        """Oculta módulos en el menú dependiendo del rol del usuario autenticado usando catálogos."""
         rol = self.usuario.rol
 
-        # [0] -> "Administrador"
+        # El Administrador [0] ve todo
         if rol == cat.ROLES_USUARIO[0]:
-            pass # El administrador ve todos los botones
+            pass 
         
-        # [1] -> "Operador Administrativo"
+        # Operador Administrativo [1]
         elif rol == cat.ROLES_USUARIO[1]:
             self.btn_infracciones.hide()
             self.btn_usuarios.hide()
+            self.btn_agentes.hide() # <-- No gestiona agentes
             
-        # [2] -> "Agente de Tránsito"
+        # Agente de Tránsito [2] (No puede editar a otros agentes)
         elif rol == cat.ROLES_USUARIO[2]:
             self.btn_propietarios.hide()
             self.btn_reportes.hide()
             self.btn_usuarios.hide()
+            self.btn_agentes.hide() # <-- No gestiona agentes
             
-        # [3] -> "Supervisor"
+        # Supervisor [3]
         elif rol == cat.ROLES_USUARIO[3]:
             self.btn_vehiculos.hide()
             self.btn_propietarios.hide()

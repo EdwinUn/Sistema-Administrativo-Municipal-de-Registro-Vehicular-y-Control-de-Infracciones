@@ -30,10 +30,9 @@ class GestorAgentes:
         
         try:
             cursor.execute('''
-                INSERT INTO agentes (nombre_completo, numero_identificacion, cargo, estado, id_usuario_registro)
+                INSERT INTO agentes (nombre_completo, numero_placa, cargo, estado, id_usuario_registro)
                 VALUES (?, ?, ?, ?, ?)
             ''', (agente.nombre_completo, agente.numero_placa, agente.cargo, agente.estado, agente.id_usuario_registro))
-            
             conexion.commit()
             return True, "Agente registrado exitosamente."
             
@@ -94,5 +93,30 @@ class GestorAgentes:
             return True, cursor.fetchall()
         except Exception as e:
             return False, []
+        finally:
+            conexion.close()
+            
+    @staticmethod
+    def buscar_agente_por_placa(placa):
+        """Busca un agente para cargar sus datos en la pestaña de modificación."""
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        try:
+            cursor.execute('''
+                SELECT a.*, u1.nombre_usuario as creador, u2.nombre_usuario as modificador
+                FROM agentes a
+                LEFT JOIN usuarios u1 ON a.id_usuario_registro = u1.id_usuario
+                LEFT JOIN usuarios u2 ON a.id_usuario_actualizacion = u2.id_usuario
+                WHERE a.numero_placa = ?
+            ''', (placa,))
+            row = cursor.fetchone()
+            if row:
+                return True, {
+                    "id_agente": row[0], "numero_placa": row[1], "nombre_completo": row[2],
+                    "cargo": row[3], "estado": row[4],
+                    "creador": row[6] if row[6] else "Sistema",
+                    "modificador": row[7] if row[7] else "Sin cambios"
+                }
+            return False, "Agente no encontrado."
         finally:
             conexion.close()
