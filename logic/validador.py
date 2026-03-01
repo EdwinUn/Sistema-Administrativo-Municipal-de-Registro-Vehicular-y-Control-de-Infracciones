@@ -286,3 +286,28 @@ class Validador:
             return False, "El ID del agente debe ser mayor a cero."
             
         return True, ""
+    
+    @staticmethod
+    def validar_placa_agente(placa: str) -> tuple[bool, str]:
+        """
+        Valida que la placa siga el formato oficial (Ej: AG-101).
+        """
+        placa = placa.strip().upper()
+        # Formato: letras AG seguido de un guion y al menos 2 números
+        patron = r"^AG-\d{2,5}$"
+        if not re.match(patron, placa):
+            return False, "Formato de placa de agente inválido. Debe ser 'AG-' seguido de números (Ej: AG-101)."
+        return True, ""
+
+    @staticmethod
+    def validar_cargo(cargo: str) -> tuple[bool, str]:
+        """
+        Valida que el cargo sea un puesto real y no caracteres al azar.
+        """
+        if not cargo or len(cargo.strip()) < 4:
+            return False, "El cargo debe ser descriptivo (mínimo 4 caracteres)."
+        
+        # Solo letras y espacios
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', cargo):
+            return False, "El cargo solo puede contener letras y espacios."
+        return True, ""
