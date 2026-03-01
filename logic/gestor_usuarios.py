@@ -1,7 +1,7 @@
 import sqlite3
 from database.conexion import obtener_conexion
 from logic.auth import Auth # Importamos Auth por si luego ocupamos hashear contraseñas nuevas
-
+import logic.catalogos as cat
 class GestorUsuarios:
 
     @staticmethod
@@ -33,11 +33,9 @@ class GestorUsuarios:
 
     @staticmethod
     def actualizar_usuario(id_usuario, nuevo_rol, nuevo_estado, id_usuario_modificador):
-        """
-        Permite al administrador cambiar el rol o el estado (Activo/Inactivo) de un empleado.
-        """
-        if id_usuario == 1 and (nuevo_estado != "Activo" or nuevo_rol != "Administrador"):
-            return False, "Error de Seguridad: No puede alterar el estado ni el rol del Administrador principal (ID 1)."
+        # Usamos cat.ROLES_USUARIO[0] en lugar del texto "Administrador"
+        if id_usuario == 1 and (nuevo_estado != "Activo" or nuevo_rol != cat.ROLES_USUARIO[0]):
+            return False, "Error de Seguridad: No puede alterar el estado ni el rol del Administrador principal."
 
         conexion = obtener_conexion()
         cursor = conexion.cursor()

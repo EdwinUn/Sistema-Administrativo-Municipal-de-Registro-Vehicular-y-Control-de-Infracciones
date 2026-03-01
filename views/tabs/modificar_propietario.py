@@ -84,7 +84,7 @@ class TabModificarPropietario(QWidget):
 
         self.mod_tel = QLineEdit()
         self.mod_correo = QLineEdit()
-        self.mod_lic = QComboBox(); self.mod_lic.addItems(["Vigente", "Suspendida", "Cancelada", "Vencida"])
+        self.mod_lic = QComboBox(); self.mod_lic.addItems(cat.ESTADOS_LICENCIA)
         self.mod_estado_sis = QComboBox(); self.mod_estado_sis.addItems(["Activo", "Inactivo"])
 
         grid_cont.addWidget(QLabel("Teléfono:"), 0, 0); grid_cont.addWidget(self.mod_tel, 0, 1)
@@ -143,3 +143,24 @@ class TabModificarPropietario(QWidget):
             ciudad, estado = cat.MAPEO_CP[cp_texto]
             self.mod_ciudad.setText(ciudad)
             self.mod_estado_prov.setText(estado)
+
+    def aplicar_permisos(self):
+        """Bloquea los elementos editables si el usuario es Agente o Supervisor."""
+        rol = self.usuario_actual.rol
+        
+        # Solo Admin [0] y Supervisor [3] ven auditoría
+        if rol not in [cat.ROLES_USUARIO[0], cat.ROLES_USUARIO[3]]:
+            self.lbl_auditoria.setVisible(False)
+        
+        # Agente de Tránsito [2] o Supervisor [3]
+        if rol in [cat.ROLES_USUARIO[2], cat.ROLES_USUARIO[3]]:
+            self.btn_actualizar.setVisible(False)
+            
+            # Bloqueamos físicamente los campos para que sean de solo lectura
+            self.mod_direccion.setReadOnly(True)
+            self.mod_telefono.setReadOnly(True)
+            self.mod_correo.setReadOnly(True)
+            
+            # Apagamos los combos
+            self.mod_licencia.setEnabled(False)
+            self.mod_estado.setEnabled(False)

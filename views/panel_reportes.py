@@ -35,8 +35,8 @@ class PanelReportes(QWidget):
 
         # === APLICACIÓN DE ROLES (RBAC) ===
         rol = self.usuario_actual.rol
-        
-        if rol in ["Administrador", "Supervisor"]:
+        # Acceso total para Administrador [0] y Supervisor [3]
+        if rol in [cat.ROLES_USUARIO[0], cat.ROLES_USUARIO[3]]:
             # Tienen acceso a todos los reportes
             self.combo_reportes.addItem("1. Vehículos con infracciones pendientes", 1)
             self.combo_reportes.addItem("2. Infracciones por rango de fechas", 2)
@@ -50,15 +50,16 @@ class PanelReportes(QWidget):
             self.combo_reportes.addItem("9. Auditoría de Trámites de Propietarios", 9)
             self.combo_reportes.addItem("10. Auditoría de Privilegios de Usuarios", 10)
             self.combo_reportes.addItem("11. Historial Completo de Movimientos (Bitácora)", 11)
-            
-        elif rol == "Operador Administrativo":
+        
+        # Acceso limitado para Operador Administrativo [1]
+        elif rol == cat.ROLES_USUARIO[1]:
             # Solo reportes básicos enfocados a padrón vehicular
             self.combo_reportes.addItem("1. Vehículos con infracciones pendientes", 1)
             self.combo_reportes.addItem("4. Vehículos por estado legal", 4)
             self.combo_reportes.addItem("5. Propietarios con múltiples vehículos", 5)
             
-        elif rol == "Agente de Tránsito":
-            # Bloqueo total
+        # Bloqueo para Agente de Tránsito [2]
+        elif rol == cat.ROLES_USUARIO[2]:
             self.combo_reportes.setItemText(0, "Sin acceso a reportes")
             self.combo_reportes.setEnabled(False)
 

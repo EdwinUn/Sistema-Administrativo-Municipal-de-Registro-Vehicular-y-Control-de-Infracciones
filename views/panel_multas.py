@@ -163,7 +163,7 @@ class PanelMultas(QWidget):
         
         # Combo de Estado
         self.combo_nuevo_estado = QComboBox()
-        self.combo_nuevo_estado.addItems(["Pagada", "Cancelada"]) 
+        self.combo_nuevo_estado.addItems(cat.ESTADOS_INFRACCION[1:]) 
         self.combo_nuevo_estado.setMinimumHeight(35)
 
         # Botón de Aplicar

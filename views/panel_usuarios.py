@@ -10,6 +10,7 @@ from logic.auth import Auth
 from models.usuario import Usuario
 from logic.gestor_usuarios import GestorUsuarios
 
+
 class PanelUsuarios(QWidget):
     def __init__(self, usuario_actual):
         super().__init__()
@@ -116,7 +117,7 @@ class PanelUsuarios(QWidget):
 
     def aplicar_permisos(self):
         """Si por algún motivo alguien que no es Admin llega aquí, bloqueamos todo."""
-        if self.usuario_actual.rol != "Administrador":
+        if self.usuario_actual.rol != cat.ROLES_USUARIO[0]: # Uso del índice [0] para Administrador
             self.pestanas.setEnabled(False)
             
 

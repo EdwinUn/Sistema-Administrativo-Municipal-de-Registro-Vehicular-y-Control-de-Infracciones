@@ -1,12 +1,13 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, 
 QLineEdit, QPushButton, QComboBox, QFormLayout, 
-QMessageBox, QSpinBox)
+QMessageBox, QSpinBox, QHBoxLayout)
 from PySide6.QtCore import Qt
 
 # Importaciones del backend (Mantenemos las rutas absolutas asumiendo que ejecutas desde el main)
 import logic.catalogos as cat
 from models.vehiculo import Vehiculo
 from logic.gestor_vehiculos import GestorVehiculos
+from logic.gestor_propietarios import GestorPropietarios
 
 # [REFACTORIZACIÓN]: Cambiamos el nombre de la clase. 
 # Ya no es "PanelVehiculos", ahora es un componente específico llamado "TabRegistrarVehiculo".
@@ -34,6 +35,7 @@ class TabRegistrarVehiculo(QWidget):
         
         self.input_id_propietario = QLineEdit()
         self.input_id_propietario.setPlaceholderText("Ej. PRP-00001")
+        self.input_id_propietario.textChanged.connect(self.verificar_limpieza_id)
         
         self.input_anio = QSpinBox()
         self.input_anio.setRange(1899, 2030)
@@ -72,6 +74,28 @@ class TabRegistrarVehiculo(QWidget):
         # Solo necesitamos forzarla una vez para arrancar con datos limpios.
         self.actualizar_modelos(self.combo_marca.currentText())
 
+        # ==========================================
+        # DISEÑO DEL BUSCADOR DE PROPIETARIO
+        # ==========================================
+        layout_id_busqueda = QHBoxLayout()
+        
+        self.input_id_propietario = QLineEdit()
+        self.input_id_propietario.setPlaceholderText("Ej. PRP-00001")
+        # Bloqueamos la edición manual para obligar a usar el buscador si prefieres 
+        # o dejamos que el sistema limpie el formato PRP- después.
+        
+        self.btn_buscar_prop = QPushButton("🔍 Buscar por CURP")
+        self.btn_buscar_prop.setStyleSheet("background-color: #34495e; color: white; padding: 5px;")
+        self.btn_buscar_prop.clicked.connect(self.abrir_buscador_propietario)
+
+        layout_id_busqueda.addWidget(self.input_id_propietario)
+        layout_id_busqueda.addWidget(self.btn_buscar_prop)
+
+        # Etiqueta de confirmación visual (Nombre del dueño)
+        self.lbl_confirmacion_nombre = QLabel("Dueño: (No seleccionado)")
+        self.lbl_confirmacion_nombre.setStyleSheet("color: #a6e3a1; font-style: italic; font-size: 11px;")
+
+        
         # 4. Ensamblaje del Formulario
         formulario.addRow("VIN (17 caracteres):", self.input_vin)
         formulario.addRow("Placa:", self.input_placa)
@@ -83,6 +107,8 @@ class TabRegistrarVehiculo(QWidget):
         formulario.addRow("Estado Legal:", self.combo_estado)
         formulario.addRow("Procedencia:", self.combo_procedencia)
         formulario.addRow("ID Propietario:", self.input_id_propietario)
+        formulario.addRow("ID Propietario:", layout_id_busqueda)
+        formulario.addRow("", self.lbl_confirmacion_nombre) # Debajo del ID sale el nombre
 
         layout.addLayout(formulario)
 
@@ -164,3 +190,37 @@ class TabRegistrarVehiculo(QWidget):
         self.input_id_propietario.clear()
         self.input_anio.setValue(2024) 
         self.combo_marca.setCurrentIndex(0)
+        
+    def abrir_buscador_propietario(self):
+        """Abre un diálogo para buscar al dueño por su CURP."""
+        from PySide6.QtWidgets import QInputDialog
+        
+        curp, ok = QInputDialog.getText(
+            self, "Buscador de Propietarios", 
+            "Ingrese la CURP del propietario para obtener su ID:"
+        )
+
+        if ok and curp.strip():
+            # Usamos la lógica que ya tenemos en el gestor
+            exito, resultado = GestorPropietarios.buscar_propietario_por_curp(curp.strip().upper())
+            
+            if exito:
+                # El resultado ahora viene desglosado por los cambios que hicimos
+                id_real = resultado["id_propietario"]
+                nombre_completo = f"{resultado['nombres']} {resultado['apellido_paterno']}"
+                
+                # Auto-llenamos el campo con el formato de matrícula
+                self.input_id_propietario.setText(f"PRP-{id_real:05d}")
+                self.lbl_confirmacion_nombre.setText(f"Dueño: {nombre_completo}")
+                
+                QMessageBox.information(self, "Propietario Localizado", 
+                                        f"Se vinculó a: {nombre_completo}")
+            else:
+                QMessageBox.warning(self, "No Encontrado", resultado)
+                self.lbl_confirmacion_nombre.setText("Dueño: (No encontrado)")
+                
+    def verificar_limpieza_id(self, texto):
+        # Si está vacío o si el texto no contiene "PRP-" (lo que indica que se está editando)
+        if not texto.strip() or "PRP-" not in texto:
+            self.lbl_confirmacion_nombre.setText("Dueño: (No seleccionado)")
+            self.lbl_confirmacion_nombre.setStyleSheet("color: #a6adc8; font-style: italic; font-size: 11px;")

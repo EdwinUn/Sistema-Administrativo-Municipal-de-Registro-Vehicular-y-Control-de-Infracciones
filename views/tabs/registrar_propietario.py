@@ -29,7 +29,7 @@ class TabRegistrarPropietario(QWidget):
         layout_principal.setSpacing(25) # Separación entre los cuadros (Personales, Dirección, Contacto)
         layout_principal.setContentsMargins(30, 35, 30, 20) # Márgenes contra los bordes de la ventana
 
-      
+
         # ==========================================
         # BLOQUE 1: DATOS PERSONALES
         # ==========================================
@@ -166,7 +166,7 @@ class TabRegistrarPropietario(QWidget):
         self.input_correo.setPlaceholderText("ejemplo@correo.com *")
 
         self.combo_licencia = QComboBox()
-        self.combo_licencia.addItems(["Vigente", "Suspendida", "Cancelada", "Vencida"])
+        self.combo_licencia.addItems(cat.ESTADOS_LICENCIA)
         self.combo_licencia.setMinimumHeight(30)
 
         grid_contacto.addWidget(QLabel("Teléfono: *"), 0, 0)

@@ -1,6 +1,6 @@
 import sqlite3
 from database.conexion import obtener_conexion
-
+import logic.catalogos as cat
 class GestorReportes:
 
     @staticmethod
@@ -32,11 +32,12 @@ class GestorReportes:
             SELECT v.placa, v.vin, v.marca, v.modelo, COUNT(i.folio) as total_multas_pendientes
             FROM vehiculos v
             JOIN infracciones i ON v.vin = i.vin_infractor
-            WHERE i.estado = 'Pendiente'
+            WHERE i.estado = ?
             GROUP BY v.vin
             ORDER BY total_multas_pendientes DESC
         '''
-        return GestorReportes.ejecutar_consulta(query)
+        # CAMBIO: Pasamos el valor 'Pendiente' desde el catálogo
+        return GestorReportes.ejecutar_consulta(query, (cat.ESTADOS_INFRACCION[0],))
 
     # 2. Infracciones por rango de fechas [cite: 351]
     @staticmethod
