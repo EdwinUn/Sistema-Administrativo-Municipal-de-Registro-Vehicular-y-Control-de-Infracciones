@@ -85,8 +85,8 @@ class TabModificarPropietario(QWidget):
         self.mod_tel = QLineEdit()
         self.mod_correo = QLineEdit()
         self.mod_lic = QComboBox(); self.mod_lic.addItems(cat.ESTADOS_LICENCIA)
-        self.mod_estado_sis = QComboBox(); self.mod_estado_sis.addItems(["Activo", "Inactivo"])
-
+        self.mod_estado_sis = QComboBox(); self.mod_estado_sis.addItems(cat.ESTADOS_PROPIETARIO)
+        self.mod_estado_sis.setCurrentIndex(-1)
         grid_cont.addWidget(QLabel("Teléfono:"), 0, 0); grid_cont.addWidget(self.mod_tel, 0, 1)
         grid_cont.addWidget(QLabel("Correo:"), 0, 2); grid_cont.addWidget(self.mod_correo, 0, 3)
         grid_cont.addWidget(QLabel("Licencia:"), 1, 0); grid_cont.addWidget(self.mod_lic, 1, 1)

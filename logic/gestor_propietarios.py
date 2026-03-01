@@ -1,12 +1,8 @@
-"""
-TODO 
-- Evitar que se repita el codigo en registar_propietario, tratar de refactorizar
-"""
 
 import sqlite3
 from database.conexion import obtener_conexion
 from logic.validador import Validador
-
+import logic.catalogos as cat
 class GestorPropietarios:
     
     @staticmethod
@@ -71,19 +67,26 @@ class GestorPropietarios:
     @staticmethod
     def modificar_propietario(id_propietario, datos, id_usuario):
         """
-        Actualiza los datos permitidos del propietario.
-        'datos' es un diccionario con: calle, num_ext, num_int, colonia, cp, ciudad, estado_prov, etc.
+        Actualiza los datos permitidos del propietario usando el catálogo oficial.
         """
         conexion = obtener_conexion()
         cursor = conexion.cursor()
 
         try:
-            # Regla de negocio: Impedir inactivación si tiene vehículos activos
-            if datos['estado'] == "Inactivo":
-                cursor.execute("SELECT COUNT(*) FROM vehiculos WHERE id_propietario = ? AND estado_legal = 'Activo'", (id_propietario,))
+            # 1. Regla de negocio: Impedir inactivación si tiene vehículos activos
+            # CAMBIO: Usamos cat.ESTADOS_PROPIETARIO[1] para referirnos a "Inactivo"
+            if datos['estado'] == cat.ESTADOS_PROPIETARIO[1]:
+                
+                # CAMBIO: Usamos marcador de posición (?) y pasamos cat.ESTADOS_VEHICULO[0] ("Activo")
+                cursor.execute(f'''
+                    SELECT COUNT(*) FROM vehiculos 
+                    WHERE id_propietario = ? AND estado_legal = ?
+                ''', (id_propietario, cat.ESTADOS_VEHICULO[0]))
+                
                 if cursor.fetchone()[0] > 0:
-                    return False, "Error: No se puede inactivar al propietario con vehículos activos."
+                    return False, f"Error: No se puede cambiar a {cat.ESTADOS_PROPIETARIO[1]} al propietario porque tiene vehículos en estado {cat.ESTADOS_VEHICULO[0]}."
 
+            # 2. Ejecutar la actualización
             cursor.execute('''
                 UPDATE propietarios 
                 SET calle = ?, numero_exterior = ?, numero_interior = ?, 
@@ -100,7 +103,7 @@ class GestorPropietarios:
             conexion.commit()
             return True, "Datos del propietario actualizados correctamente."
         except Exception as e:
-            return False, f"Error: {str(e)}"
+            return False, f"Error inesperado: {str(e)}"
         finally:
             conexion.close()
 

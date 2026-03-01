@@ -1,7 +1,7 @@
 import sqlite3
 from database.conexion import obtener_conexion
 from logic.validador import Validador
-
+import logic.catalogos as cat
 class GestorVehiculos:
     
     @staticmethod
@@ -251,7 +251,7 @@ class GestorVehiculos:
             cursor.execute("SELECT estado FROM propietarios WHERE id_propietario = ?", (id_nuevo_propietario,))
             propietario = cursor.fetchone()
             
-            if not propietario or propietario[0] != "Activo":
+            if not propietario or propietario[0] != cat.ESTADOS_PROPIETARIO[0]:
                 return False, "Error: El propietario destino no existe o está inactivo."
 
             cursor.execute("UPDATE vehiculos SET id_propietario = ?, id_usuario_actualizacion = ? WHERE vin = ?", (id_nuevo_propietario, id_usuario, vin))
@@ -262,7 +262,10 @@ class GestorVehiculos:
             
     @staticmethod
     def obtener_estadisticas_dashboard() -> dict:
-        """Devuelve un diccionario con los totales para el panel de inicio."""
+        """
+        Devuelve un diccionario con los totales para el panel de inicio.
+        Consulta los estados directamente desde el catálogo oficial.
+        """
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         
@@ -271,16 +274,17 @@ class GestorVehiculos:
             cursor.execute("SELECT COUNT(*) FROM vehiculos")
             total_vehiculos = cursor.fetchone()[0]
             
-            # 2. Vehículos con reporte de robo/incidencia
-            cursor.execute("SELECT COUNT(*) FROM vehiculos WHERE estado_legal = 'Reportado'")
+            # 2. Vehículos con reporte de robo (Uso de cat.ESTADOS_VEHICULO[2])
+            # Se corrige 'Reportado' por el valor real del catálogo: 'Reporte de robo'
+            cursor.execute("SELECT COUNT(*) FROM vehiculos WHERE estado_legal = ?", (cat.ESTADOS_VEHICULO[2],))
             total_reportados = cursor.fetchone()[0]
             
-            # 3. Multas pendientes de pago
-            cursor.execute("SELECT COUNT(*) FROM infracciones WHERE estado = 'Pendiente'")
+            # 3. Multas pendientes de pago (Uso de cat.ESTADOS_INFRACCION[0])
+            cursor.execute("SELECT COUNT(*) FROM infracciones WHERE estado = ?", (cat.ESTADOS_INFRACCION[0],))
             multas_pendientes = cursor.fetchone()[0]
             
-            # 4. Dinero recaudado (Multas Pagadas)
-            cursor.execute("SELECT SUM(monto) FROM infracciones WHERE estado = 'Pagada'")
+            # 4. Dinero recaudado - Multas Pagadas (Uso de cat.ESTADOS_INFRACCION[1])
+            cursor.execute("SELECT SUM(monto) FROM infracciones WHERE estado = ?", (cat.ESTADOS_INFRACCION[1],))
             recaudacion_bruta = cursor.fetchone()[0]
             recaudacion = recaudacion_bruta if recaudacion_bruta else 0.0
 
@@ -292,6 +296,7 @@ class GestorVehiculos:
             }
             
         except Exception as e:
+            # En caso de error, devolvemos valores en cero para no romper la interfaz
             return {"total_vehiculos": 0, "reportados": 0, "multas_pendientes": 0, "recaudacion": 0.0}
         finally:
             conexion.close()
