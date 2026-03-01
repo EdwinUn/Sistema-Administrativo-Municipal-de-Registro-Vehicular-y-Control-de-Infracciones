@@ -33,10 +33,6 @@ class TabRegistrarVehiculo(QWidget):
         self.input_placa = QLineEdit()
         self.input_placa.setPlaceholderText("Ej: YYU-021-A")
         
-        self.input_id_propietario = QLineEdit()
-        self.input_id_propietario.setPlaceholderText("Ej. PRP-00001")
-        self.input_id_propietario.textChanged.connect(self.verificar_limpieza_id)
-        
         self.input_anio = QSpinBox()
         self.input_anio.setRange(1899, 2030)
         self.input_anio.setSpecialValueText(" ")
@@ -81,6 +77,7 @@ class TabRegistrarVehiculo(QWidget):
         
         self.input_id_propietario = QLineEdit()
         self.input_id_propietario.setPlaceholderText("Ej. PRP-00001")
+        self.input_id_propietario.textChanged.connect(self.verificar_limpieza_id)
         # Bloqueamos la edición manual para obligar a usar el buscador si prefieres 
         # o dejamos que el sistema limpie el formato PRP- después.
         
@@ -106,7 +103,6 @@ class TabRegistrarVehiculo(QWidget):
         formulario.addRow("Clase:", self.combo_clase)
         formulario.addRow("Estado Legal:", self.combo_estado)
         formulario.addRow("Procedencia:", self.combo_procedencia)
-        formulario.addRow("ID Propietario:", self.input_id_propietario)
         formulario.addRow("ID Propietario:", layout_id_busqueda)
         formulario.addRow("", self.lbl_confirmacion_nombre) # Debajo del ID sale el nombre
 

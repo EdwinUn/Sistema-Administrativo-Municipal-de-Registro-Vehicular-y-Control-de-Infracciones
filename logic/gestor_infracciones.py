@@ -104,11 +104,11 @@ class GestorInfracciones:
                 return False, f"La infracción ya se encuentra en estado '{estado_actual}'."
 
             # Regla explícita: No podrá marcarse como Pagada una infracción ya cancelada.
-            if estado_actual == "Cancelada" and nuevo_estado == "Pagada":
+            if estado_actual == cat.ESTADOS_INFRACCION[2] and nuevo_estado == cat.ESTADOS_INFRACCION[1]:
                 return False, "Error: No se puede marcar como 'Pagada' una infracción que ya ha sido 'Cancelada'."
 
             # Regla: El estado podrá cambiar de Pendiente a Pagada o Cancelada.
-            if estado_actual == "Pagada":
+            if estado_actual == cat.ESTADOS_INFRACCION[1]:
                 return False, "Error: La infracción ya se encuentra 'Pagada' y su estado es definitivo."
 
             # 4. Ejecutar la actualización en la base de datos

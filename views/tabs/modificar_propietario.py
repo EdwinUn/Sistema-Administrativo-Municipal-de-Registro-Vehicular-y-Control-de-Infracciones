@@ -148,19 +148,20 @@ class TabModificarPropietario(QWidget):
         """Bloquea los elementos editables si el usuario es Agente o Supervisor."""
         rol = self.usuario_actual.rol
         
-        # Solo Admin [0] y Supervisor [3] ven auditoría
         if rol not in [cat.ROLES_USUARIO[0], cat.ROLES_USUARIO[3]]:
             self.lbl_auditoria.setVisible(False)
         
-        # Agente de Tránsito [2] o Supervisor [3]
         if rol in [cat.ROLES_USUARIO[2], cat.ROLES_USUARIO[3]]:
             self.btn_actualizar.setVisible(False)
             
-            # Bloqueamos físicamente los campos para que sean de solo lectura
-            self.mod_direccion.setReadOnly(True)
-            self.mod_telefono.setReadOnly(True)
+            # Usando los nombres de variables reales definidos en configurar_ui
+            self.mod_calle.setReadOnly(True)
+            self.mod_num_ext.setReadOnly(True)
+            self.mod_num_int.setReadOnly(True)
+            self.mod_colonia.setReadOnly(True)
+            self.mod_cp.setReadOnly(True)
+            self.mod_tel.setReadOnly(True)
             self.mod_correo.setReadOnly(True)
             
-            # Apagamos los combos
-            self.mod_licencia.setEnabled(False)
-            self.mod_estado.setEnabled(False)
+            self.mod_lic.setEnabled(False)
+            self.mod_estado_sis.setEnabled(False)
